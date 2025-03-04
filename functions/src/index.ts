@@ -9,10 +9,9 @@ import {google} from "googleapis";
 // Inicializar Firebase Admin
 admin.initializeApp();
 
-// ID de tu Google Sheets (cópialo desde la URL del documento)
+// ID de tu Google Sheets
 const SHEET_ID = "17cEPfdBHfoaLyUHxk1pE0XOEJPV_Stys99Bi7cDXyOI";
 
-// Variable para almacenar el cliente de Sheets una vez inicializado.
 let sheetsClient: ReturnType<typeof google.sheets> | null = null;
 
 /**
@@ -37,15 +36,13 @@ async function getSheetsClient() {
   return sheetsClient;
 }
 
-// Cloud Function para exportar los turnos de un día específico.
-// Se especifica el secreto para que se inyecte en el entorno de la función.
 export const exportMealsToSheets = functions.onRequest(
   {secrets: ["GOOGLE_CREDENTIALS_BASE64"]},
   async (req, res) => {
     try {
-      const {date} = req.query;
-      if (!date) {
-        res.status(400).send("Falta la fecha (date) en la consulta.");
+      const {date, day} = req.query;
+      if (!date || !day) {
+        res.status(400).send("Faltan parámetros: 'date' y 'day' son obligatorios.");
         return;
       }
 
@@ -63,27 +60,54 @@ export const exportMealsToSheets = functions.onRequest(
 
         if (weekSnapshot.exists) {
           const meals = weekSnapshot.data()?.meals || {};
+          const dayMeals = meals[day as string] || {};
+
           mealData.push([
-            userData.name || "Sin nombre",
-            meals["Monday"]?.["desayuno"] || "-",
-            meals["Monday"]?.["comida"] || "-",
-            meals["Monday"]?.["cena"] || "-",
+            `${userData.firstName || "Sin nombre"} ${userData.firstSurname || ""} ${userData.secondSurname || ""}`,
+            dayMeals["Desayuno"] || "-",
+            dayMeals["Comida"] || "-",
+            dayMeals["Cena"] || "-",
           ]);
         }
       }
 
-      // Obtener o inicializar el cliente de Sheets
       const sheets = await getSheetsClient();
+      const sheetTitle = `${date}-${day}`;
 
-      // Escribir en Google Sheets
+      // Crear una nueva hoja con el nombre "date-day" si no existe
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId: SHEET_ID,
+        requestBody: {
+          requests: [
+            {
+              addSheet: {
+                properties: {title: sheetTitle},
+              },
+            },
+          ],
+        },
+      }).catch(() => {
+        // Si la hoja ya existe, ignorar el error
+      });
+
+      const spreadsheet = await sheets.spreadsheets.get({spreadsheetId: SHEET_ID});
+      const sheet = spreadsheet.data.sheets?.find((s) => s.properties?.title === sheetTitle);
+      const sheetGid = sheet?.properties?.sheetId || 0; // `gid` de la hoja
+
+      // Escribir datos en la nueva hoja
       await sheets.spreadsheets.values.update({
         spreadsheetId: SHEET_ID,
-        range: "A1", // Escribir desde la celda A1
+        range: `${sheetTitle}!A1`,
         valueInputOption: "RAW",
         requestBody: {values: mealData},
       });
 
-      res.status(200).send(`Datos exportados para el día ${date}`);
+      const sheetUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=pdf&portrait=true&size=a4&gid=${sheetGid}`;
+
+      res.status(200).json({
+        message: `Datos exportados para ${day} de la semana ${date}`,
+        exportUrl: sheetUrl,
+      });
     } catch (error) {
       console.error("Error exportando a Sheets:", error);
       res.status(500).send("Error interno");

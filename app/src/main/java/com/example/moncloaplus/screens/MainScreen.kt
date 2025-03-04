@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -22,6 +23,8 @@ import com.example.moncloaplus.HOME_SCREEN
 import com.example.moncloaplus.R
 import com.example.moncloaplus.model.User
 import com.example.moncloaplus.screens.account_center.AccountCenterViewModel
+import com.example.moncloaplus.screens.export_meals.ExportMealsScreen
+import com.example.moncloaplus.screens.home.EXPORT_MEALS_SCREEN
 import com.example.moncloaplus.screens.home.HomeScreen
 import com.example.moncloaplus.screens.home.MEALS_TEMPLATE_SCREEN
 import com.example.moncloaplus.screens.home.RESERVATION_SCREEN
@@ -137,6 +140,23 @@ fun MainScreen(
                         shape = MaterialTheme.shapes.small
                     )
 
+                    if (user.isAdmin()) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(top = 6.dp, bottom = 6.dp),
+                            thickness = 2.dp
+                        )
+                        NavigationDrawerItem(
+                            icon = { Icon(Icons.Filled.Build, contentDescription = null) },
+                            label = { Text("Exportar comidas") },
+                            selected = currentRoute?.destination?.route == EXPORT_MEALS_SCREEN,
+                            onClick = {
+                                scope.launch { drawerState.close() }
+                                navController.navigate(EXPORT_MEALS_SCREEN)
+                            },
+                            shape = MaterialTheme.shapes.small
+                        )
+                    }
+
                     Spacer(Modifier.weight(1f))
 
                     NavigationDrawerItem(
@@ -190,6 +210,10 @@ fun NavGraphBuilder.mainGraph(navController: NavHostController) {
 
     composable(RESERVATION_SCREEN) {
         ReservationScreen()
+    }
+
+    composable(EXPORT_MEALS_SCREEN) {
+        ExportMealsScreen()
     }
 
     composable(ACCOUNT_CENTER_SCREEN) {
