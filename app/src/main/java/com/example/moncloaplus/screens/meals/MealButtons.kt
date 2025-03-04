@@ -179,9 +179,11 @@ fun MealDropdown(label: String, options: List<String>, selected: String?, onSele
     val dark = isSystemInDarkTheme()
     val containerColor = when (selectedOption) {
         "-" ->
-            if (label == "Desayuno") MealColors.breakfastContainer()
-            else if (label == "Comida") MealColors.lunchContainer()
-            else MealColors.dinnerContainer()
+            when (label) {
+                "Desayuno" -> MealColors.breakfastContainer()
+                "Comida" -> MealColors.lunchContainer()
+                else -> MealColors.dinnerContainer()
+            }
         "Pronto" -> MealColors.prontoContainer
         "Normal" -> MealColors.normalContainer()
         "Tarde" -> if (dark) MealColors.tardeContainerDark else MealColors.tardeContainerLight

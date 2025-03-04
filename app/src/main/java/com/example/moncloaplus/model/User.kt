@@ -24,7 +24,7 @@ data class User (
     val role: UserRole = UserRole.NORMAL
 ) {
 
-    fun canExtractMeals(): Boolean {
+    fun canExportMeals(): Boolean {
         return role == UserRole.ADMIN || role == UserRole.GERENCIA
     }
 

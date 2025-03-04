@@ -140,7 +140,7 @@ fun MainScreen(
                         shape = MaterialTheme.shapes.small
                     )
 
-                    if (user.isAdmin()) {
+                    if (user.canExportMeals()) {
                         HorizontalDivider(
                             modifier = Modifier.padding(top = 6.dp, bottom = 6.dp),
                             thickness = 2.dp
