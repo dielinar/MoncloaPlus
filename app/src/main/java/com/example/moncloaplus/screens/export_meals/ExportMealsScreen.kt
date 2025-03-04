@@ -5,6 +5,7 @@ import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,7 +32,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.moncloaplus.model.WeekMealsViewModel
 import com.example.moncloaplus.screens.meals.WEEK_DAYS
+import com.example.moncloaplus.screens.meals.getExactDate
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ExportMealsScreen(
     mealsViewModel: WeekMealsViewModel = hiltViewModel(),
@@ -97,7 +100,9 @@ fun ExportMealsScreen(
 
         if (exportResult.isNotEmpty()) {
             if (shouldDownload && exportResult.contains("Datos exportados", ignoreCase = true) && exportUrl.isNotEmpty()) {
-                startDownload(context, exportUrl)
+                val exactDate = getExactDate(selectedWeek, selectedDay)
+                val fileName = "${selectedDay}_${exactDate}.pdf"
+                startDownload(context, exportUrl, fileName)
                 shouldDownload = false
             }
         }
@@ -136,9 +141,9 @@ fun DropdownSelector(label: String, options: List<String>, selected: String?, on
     }
 }
 
-fun startDownload(context: Context, url: String) {
+fun startDownload(context: Context, url: String, fileName: String) {
     val request = DownloadManager.Request(Uri.parse(url))
-        .setTitle("Descarga de Google Sheets")
+        .setTitle("Descargando $fileName")
         .setDescription("Descargando archivo de Google Sheets...")
         .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
         .setAllowedOverMetered(true)
@@ -147,12 +152,12 @@ fun startDownload(context: Context, url: String) {
         request.setDestinationInExternalFilesDir(
             context,
             Environment.DIRECTORY_DOWNLOADS,
-            "GoogleSheets.pdf"
+            fileName
         )
     } else {
         request.setDestinationInExternalPublicDir(
             Environment.DIRECTORY_DOWNLOADS,
-            "GoogleSheets.pdf"
+           fileName
         )
     }
 
