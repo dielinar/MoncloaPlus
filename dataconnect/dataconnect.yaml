@@ -1,0 +1,12 @@
+specVersion: "v1beta"
+serviceId: "MoncloaPlus"
+location: "europe-southwest1"
+schema:
+  source: "./schema"
+  datasource:
+    postgresql:
+      database: "fdcdb"
+      cloudSql:
+        instanceId: "moncloaplus-fdc"
+      # schemaValidation: "COMPATIBLE"
+connectorDirs: ["./connector"]
