@@ -179,4 +179,16 @@ class WeekMealsViewModel @Inject constructor(
         _hasTemplateChanges.value = true
     }
 
+    fun getUpcomingWeeks(): List<String> {
+        val weeks = mutableListOf<String>()
+        val tempCalendar = Calendar.getInstance()
+
+        repeat(3) {
+            weeks.add(getStartOfWeek(tempCalendar.time))
+            tempCalendar.add(Calendar.WEEK_OF_YEAR, 1)
+        }
+
+        return weeks
+    }
+
 }

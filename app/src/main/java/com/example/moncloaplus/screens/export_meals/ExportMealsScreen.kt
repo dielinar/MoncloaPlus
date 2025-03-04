@@ -6,48 +6,134 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.moncloaplus.model.WeekMealsViewModel
+import com.example.moncloaplus.screens.meals.WEEK_DAYS
 
 @Composable
 fun ExportMealsScreen(
-    viewModel: ExportMealsViewModel = hiltViewModel()
+    mealsViewModel: WeekMealsViewModel = hiltViewModel(),
+    exportViewModel: ExportMealsViewModel = hiltViewModel()
 ) {
 
     val context = LocalContext.current
-    val exportResult by viewModel.exportResult.collectAsState()
-    val exportUrl by viewModel.exportUrl.collectAsState()
+    val exportResult by exportViewModel.exportResult.collectAsState()
+    val exportUrl by exportViewModel.exportUrl.collectAsState()
+    val isExporting by exportViewModel.isExporting.collectAsState()
+
+    val weeks = mealsViewModel.getUpcomingWeeks()
+    val days = WEEK_DAYS
+
+    val selectedWeek by exportViewModel.selectedWeek.collectAsState()
+    val selectedDay by exportViewModel.selectedDay.collectAsState()
+
+    var shouldDownload by remember { mutableStateOf(false) }
+
+    val initialWeek = weeks.firstOrNull() ?: ""
+    val initialDay = days.firstOrNull() ?: ""
+
+    if (selectedWeek.isEmpty()) exportViewModel.updateSelectedWeek(initialWeek)
+    if (selectedDay.isEmpty()) exportViewModel.updateSelectedDay(initialDay)
 
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
+        DropdownSelector(
+            label = "Selecciona la semana",
+            options = weeks,
+            selected = selectedWeek,
+            onSelectionChange = { exportViewModel.updateSelectedWeek(it) }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        DropdownSelector(
+            label = "Selecciona el día",
+            options = days,
+            selected = selectedDay,
+            onSelectionChange = { exportViewModel.updateSelectedDay(it) }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         Button(
             onClick = {
-                viewModel.exportMeals("03-03-2025", "Sábado")
+                shouldDownload = true
+                exportViewModel.exportMeals()
             }
         ) {
             Text("Exportar y descargar Google Sheets")
         }
 
+        if (isExporting) {
+            Spacer(modifier = Modifier.height(16.dp))
+            CircularProgressIndicator()
+        }
+
         if (exportResult.isNotEmpty()) {
-            Text(text = exportResult)
-            if (exportResult.contains("Datos exportados", ignoreCase = true) && exportUrl.isNotEmpty()) {
+            if (shouldDownload && exportResult.contains("Datos exportados", ignoreCase = true) && exportUrl.isNotEmpty()) {
                 startDownload(context, exportUrl)
+                shouldDownload = false
             }
         }
     }
+}
 
+@Composable
+fun DropdownSelector(label: String, options: List<String>, selected: String?, onSelectionChange: (String) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    val selectedOption = selected ?: ""
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(text = label, style = MaterialTheme.typography.bodyMedium)
+
+        Box {
+            OutlinedButton(
+                onClick = { expanded = true },
+            ) {
+                Text(text = selectedOption)
+            }
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                options.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(option) },
+                        onClick = {
+                            onSelectionChange(option)
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
+    }
 }
 
 fun startDownload(context: Context, url: String) {
@@ -57,16 +143,13 @@ fun startDownload(context: Context, url: String) {
         .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
         .setAllowedOverMetered(true)
 
-    // Verifica la versión de Android
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        // Android 10+ usa getExternalFilesDir()
         request.setDestinationInExternalFilesDir(
             context,
             Environment.DIRECTORY_DOWNLOADS,
             "GoogleSheets.pdf"
         )
     } else {
-        // Android 9 y versiones anteriores usan setDestinationInExternalPublicDir()
         request.setDestinationInExternalPublicDir(
             Environment.DIRECTORY_DOWNLOADS,
             "GoogleSheets.pdf"

@@ -252,7 +252,7 @@ fun MealScheduleRow(day: String, date: String?, selectedMeals: Map<String, Strin
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(
-            modifier = Modifier.width(80.dp), // Ajusta el ancho según necesites
+            modifier = Modifier.width(80.dp),
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.Center
         ) {
