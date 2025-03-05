@@ -66,8 +66,9 @@ class AccountServiceImpl @Inject constructor() : AccountService {
         return authResult.user?.uid ?: throw Exception("No se pudo obtener el UID del usuario")
     }
 
-    override suspend fun signInWithEmail(email: String, password: String) {
-        Firebase.auth.signInWithEmailAndPassword(email, password).await()
+    override suspend fun signInWithEmail(email: String, password: String): String {
+        val authResult = Firebase.auth.signInWithEmailAndPassword(email, password).await()
+        return authResult.user?.uid ?: throw Exception ("No se pudo obtener el UID del usuario")
     }
 
     override suspend fun signUpWithEmail(email: String, password: String) {

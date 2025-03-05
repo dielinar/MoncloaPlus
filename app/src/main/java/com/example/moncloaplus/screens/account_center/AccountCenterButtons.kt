@@ -28,7 +28,6 @@ import androidx.compose.ui.unit.dp
 import com.example.moncloaplus.R
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
 fun DisplayNameCard(displayName: String, onUpdateDisplayNameClick: (String) -> Unit) {
     var showDisplayNameDialog by remember { mutableStateOf(false) }
     var newDisplayName by remember { mutableStateOf(displayName) }
@@ -70,7 +69,6 @@ fun DisplayNameCard(displayName: String, onUpdateDisplayNameClick: (String) -> U
 }
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
 fun AccountCenterCard(
     title: String,
     icon: ImageVector,

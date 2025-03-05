@@ -2,7 +2,9 @@ package com.example.moncloaplus.screens.authentication.sign_in
 
 import androidx.credentials.Credential
 import androidx.credentials.CustomCredential
+import com.example.moncloaplus.ADMIN_SCREEN
 import com.example.moncloaplus.HOME_SCREEN
+import com.example.moncloaplus.MAIN_SCREEN
 import com.example.moncloaplus.SIGN_IN_SCREEN
 import com.example.moncloaplus.SnackbarManager
 import com.example.moncloaplus.USER_DATA_SCREEN
@@ -37,8 +39,15 @@ class SignInViewModel @Inject constructor(
     fun onSignInClick(openAndPopUp: (String, String) -> Unit) {
         launchCatching {
             try {
-                accountService.signInWithEmail(_email.value, _password.value)
-                openAndPopUp(HOME_SCREEN, SIGN_IN_SCREEN)
+                val userId = accountService.signInWithEmail(_email.value, _password.value)
+                val user = storageService.getUser(userId)
+
+                if (user?.isAdmin() == true) {
+                    openAndPopUp(ADMIN_SCREEN, SIGN_IN_SCREEN)
+                }
+                else {
+                    openAndPopUp(MAIN_SCREEN, SIGN_IN_SCREEN)
+                }
             }
             catch (e: FirebaseAuthInvalidUserException) {
                 SnackbarManager.showMessage("Esta cuenta no existe. Regístrate primero.")
@@ -62,7 +71,12 @@ class SignInViewModel @Inject constructor(
                     val user = storageService.getUser(userId)
 
                     if (user != null) {
-                        openAndPopUp(HOME_SCREEN, SIGN_IN_SCREEN)
+                        if (user.isAdmin()) {
+                            openAndPopUp(ADMIN_SCREEN, SIGN_IN_SCREEN)
+                        }
+                        else {
+                            openAndPopUp(MAIN_SCREEN, SIGN_IN_SCREEN)
+                        }
                     } else {
                         openAndPopUp(USER_DATA_SCREEN, SIGN_IN_SCREEN)
                     }

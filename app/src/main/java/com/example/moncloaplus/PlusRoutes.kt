@@ -6,6 +6,8 @@ const val SPLASH_SCREEN = "SplashScreen"
 const val ACCOUNT_CENTER_SCREEN = "AccountCenterScreen"
 const val HOME_SCREEN = "HomeScreen"
 const val USER_DATA_SCREEN = "UserDataScreen"
+const val ADMIN_SCREEN = "AdminScreen"
+const val MAIN_SCREEN = "MainScreen"
 
 const val LOCALHOST = "10.0.2.2"
 const val AUTH_PORT = 9099

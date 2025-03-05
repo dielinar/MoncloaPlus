@@ -71,7 +71,7 @@ fun ExportMealsScreen(
             label = stringResource(R.string.selecciona_la_semana),
             options = weeks,
             selected = selectedWeek,
-            onSelectionChange = { exportViewModel.updateSelectedWeek(it) }
+            onSelectionChange = { exportViewModel.updateSelectedWeek(it) },
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -115,7 +115,9 @@ fun DropdownSelector(label: String, options: List<String>, selected: String?, on
     var expanded by remember { mutableStateOf(false) }
     val selectedOption = selected ?: ""
 
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Text(text = label, style = MaterialTheme.typography.bodyMedium)
 
         Box {

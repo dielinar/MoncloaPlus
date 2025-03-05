@@ -40,7 +40,7 @@ fun AuthenticationButton(buttonText: Int, onRequestResult: (Credential) -> Unit)
     Button(
         onClick = { coroutineScope.launch { launchCredManButtonUI(context, onRequestResult) } },
         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
-        shape = RoundedCornerShape(20),
+        shape = RoundedCornerShape(10),
         modifier = Modifier
             .fillMaxWidth()
             .padding(24.dp, 0.dp)

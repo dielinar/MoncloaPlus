@@ -87,7 +87,7 @@ fun SignInScreen(
             modifier = modifier
                 .fillMaxWidth()
                 .padding(24.dp, 4.dp),
-            shape = RoundedCornerShape(20),
+            shape = RoundedCornerShape(10),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
                 unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
@@ -104,7 +104,7 @@ fun SignInScreen(
             modifier = modifier
                 .fillMaxWidth()
                 .padding(24.dp, 4.dp),
-            shape = RoundedCornerShape(20),
+            shape = RoundedCornerShape(10),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
                 unfocusedBorderColor = MaterialTheme.colorScheme.secondary

@@ -21,6 +21,7 @@ import com.example.moncloaplus.screens.account_center.AccountCenterScreen
 import com.example.moncloaplus.screens.authentication.sign_in.SignInScreen
 import com.example.moncloaplus.screens.authentication.sign_up.SignUpScreen
 import com.example.moncloaplus.screens.MainScreen
+import com.example.moncloaplus.screens.admin.AdminScreen
 import com.example.moncloaplus.screens.splash.SplashScreen
 import com.example.moncloaplus.screens.user_data.UserDataScreen
 import com.example.moncloaplus.ui.theme.PlusTheme
@@ -86,9 +87,17 @@ fun NavGraphBuilder.plusGraph(appState: PlusAppState) {
         UserDataScreen(openAndPopUp = {route, popUp -> appState.navigateAndPopUp(route, popUp)})
     }
 
-    composable(HOME_SCREEN) {
+    composable(MAIN_SCREEN) {
         val navController = rememberNavController()
         MainScreen(
+            restartApp = { route -> appState.clearAndNavigate(route) },
+            navController = navController
+        )
+    }
+
+    composable(ADMIN_SCREEN) {
+        val navController = rememberNavController()
+        AdminScreen(
             restartApp = { route -> appState.clearAndNavigate(route) },
             navController = navController
         )
