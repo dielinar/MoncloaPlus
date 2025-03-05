@@ -52,4 +52,7 @@
     <string name="borrar_plantilla">Borrar plantilla</string>
     <string name="descripcion_borrar_plantilla">¿Estás seguro de eliminar tu plantilla de comidas?</string>
     <string name="panel_de_administrador">Panel de administrador</string>
+    <string name="selecciona_la_semana">Selecciona la semana</string>
+    <string name="selecciona_el_dia">Selecciona el día</string>
+    <string name="exportar_y_descargar">Exportar y descargar</string>
 </resources>

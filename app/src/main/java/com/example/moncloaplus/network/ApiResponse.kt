@@ -1,4 +1,4 @@
-package com.example.moncloaplus.model
+package com.example.moncloaplus.network
 
 data class ApiResponse(
     val message: String,

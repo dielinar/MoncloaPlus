@@ -31,13 +31,8 @@ class SignInViewModel @Inject constructor(
     private val _password = MutableStateFlow("")
     val password: StateFlow<String> = _password.asStateFlow()
 
-    fun updateEmail(newEmail: String) {
-        _email.value = newEmail
-    }
-
-    fun updatePassword(newPassword: String) {
-        _password.value = newPassword
-    }
+    fun updateEmail(newEmail: String) { _email.value = newEmail }
+    fun updatePassword(newPassword: String) { _password.value = newPassword }
 
     fun onSignInClick(openAndPopUp: (String, String) -> Unit) {
         launchCatching {

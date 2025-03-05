@@ -28,8 +28,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.moncloaplus.R
 import com.example.moncloaplus.model.WeekMealsViewModel
 import com.example.moncloaplus.screens.meals.WEEK_DAYS
 import com.example.moncloaplus.screens.meals.getExactDate
@@ -47,7 +49,6 @@ fun ExportMealsScreen(
     val isExporting by exportViewModel.isExporting.collectAsState()
 
     val weeks = mealsViewModel.getUpcomingWeeks()
-    val days = WEEK_DAYS
 
     val selectedWeek by exportViewModel.selectedWeek.collectAsState()
     val selectedDay by exportViewModel.selectedDay.collectAsState()
@@ -55,7 +56,7 @@ fun ExportMealsScreen(
     var shouldDownload by remember { mutableStateOf(false) }
 
     val initialWeek = weeks.firstOrNull() ?: ""
-    val initialDay = days.firstOrNull() ?: ""
+    val initialDay = WEEK_DAYS.firstOrNull() ?: ""
 
     if (selectedWeek.isEmpty()) exportViewModel.updateSelectedWeek(initialWeek)
     if (selectedDay.isEmpty()) exportViewModel.updateSelectedDay(initialDay)
@@ -67,7 +68,7 @@ fun ExportMealsScreen(
     ) {
 
         DropdownSelector(
-            label = "Selecciona la semana",
+            label = stringResource(R.string.selecciona_la_semana),
             options = weeks,
             selected = selectedWeek,
             onSelectionChange = { exportViewModel.updateSelectedWeek(it) }
@@ -76,8 +77,8 @@ fun ExportMealsScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         DropdownSelector(
-            label = "Selecciona el día",
-            options = days,
+            label = stringResource(R.string.selecciona_el_dia),
+            options = WEEK_DAYS,
             selected = selectedDay,
             onSelectionChange = { exportViewModel.updateSelectedDay(it) }
         )
@@ -90,7 +91,7 @@ fun ExportMealsScreen(
                 exportViewModel.exportMeals()
             }
         ) {
-            Text("Exportar y descargar Google Sheets")
+            Text(stringResource(R.string.exportar_y_descargar))
         }
 
         if (isExporting) {

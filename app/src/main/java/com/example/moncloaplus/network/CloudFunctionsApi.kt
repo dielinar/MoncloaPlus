@@ -1,6 +1,5 @@
 package com.example.moncloaplus.network
 
-import com.example.moncloaplus.model.ApiResponse
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
