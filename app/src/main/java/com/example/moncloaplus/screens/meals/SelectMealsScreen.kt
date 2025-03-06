@@ -43,10 +43,6 @@ fun SelectMealsScreen(
         }
     }
 
-    BackHandler {
-        viewModel.revertChanges()
-    }
-
     Column(
         modifier = modifier
             .fillMaxSize()

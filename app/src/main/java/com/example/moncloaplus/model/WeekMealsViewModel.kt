@@ -171,13 +171,6 @@ class WeekMealsViewModel @Inject constructor(
         _hasChanges.value = true
     }
 
-    fun revertChanges() {
-        setCurrentWeek()
-        _selectedMeals.value = lastSelection
-        _isTemplateApplied.value = false
-        _hasChanges.value = false
-    }
-
     fun clearTemplate() {
         _templateMeals.update { currentTemplate ->
             currentTemplate.toMutableMap().apply {
