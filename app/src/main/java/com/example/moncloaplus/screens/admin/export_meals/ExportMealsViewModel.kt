@@ -1,4 +1,4 @@
-package com.example.moncloaplus.screens.export_meals
+package com.example.moncloaplus.screens.admin.export_meals
 
 import com.example.moncloaplus.SnackbarManager
 import com.example.moncloaplus.network.RetrofitInstance

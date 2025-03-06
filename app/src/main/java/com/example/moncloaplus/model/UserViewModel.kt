@@ -1,6 +1,8 @@
 package com.example.moncloaplus.model
 
-import com.example.moncloaplus.HOME_SCREEN
+import com.example.moncloaplus.ADMIN_SCREEN
+import com.example.moncloaplus.MAIN_SCREEN
+import com.example.moncloaplus.SIGN_IN_SCREEN
 import com.example.moncloaplus.SnackbarManager
 import com.example.moncloaplus.USER_DATA_SCREEN
 import com.example.moncloaplus.model.service.AccountService
@@ -95,7 +97,13 @@ class UserViewModel @Inject constructor (
                 )
 
                 storageService.addUser(user)
-                openAndPopUp(HOME_SCREEN, USER_DATA_SCREEN)
+
+                if (user.isAdmin()) {
+                    openAndPopUp(ADMIN_SCREEN, SIGN_IN_SCREEN)
+                }
+                else {
+                    openAndPopUp(MAIN_SCREEN, USER_DATA_SCREEN)
+                }
             }
             catch (e: Exception) {
                 SnackbarManager.showMessage("Error desconocido al guardar los datos.")

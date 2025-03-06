@@ -21,7 +21,7 @@ import com.example.moncloaplus.HOME_SCREEN
 import com.example.moncloaplus.R
 import com.example.moncloaplus.model.User
 import com.example.moncloaplus.screens.account_center.AccountCenterViewModel
-import com.example.moncloaplus.screens.export_meals.ExportMealsScreen
+import com.example.moncloaplus.screens.admin.export_meals.ExportMealsScreen
 import com.example.moncloaplus.screens.home.EXPORT_MEALS_SCREEN
 import com.example.moncloaplus.screens.home.HomeScreen
 import com.example.moncloaplus.screens.home.MEALS_TEMPLATE_SCREEN

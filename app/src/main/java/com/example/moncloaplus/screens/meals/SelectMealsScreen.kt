@@ -1,6 +1,7 @@
 package com.example.moncloaplus.screens.meals
 
 import android.os.Build
+import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -40,6 +41,10 @@ fun SelectMealsScreen(
                 SnackbarManager.clearSnackbarState()
             }
         }
+    }
+
+    BackHandler {
+        viewModel.revertChanges()
     }
 
     Column(

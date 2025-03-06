@@ -30,6 +30,8 @@ class WeekMealsViewModel @Inject constructor(
     private val _selectedMeals = MutableStateFlow(mutableMapOf<String, MutableMap<String, String>>())
     val selectedMeals: StateFlow<Map<String, Map<String, String>>> = _selectedMeals.asStateFlow()
 
+    private var lastSelection: MutableMap<String, MutableMap<String, String>> = mutableMapOf()
+
     private val _templateMeals = MutableStateFlow(mutableMapOf<String, MutableMap<String, String>>())
     val templateMeals: StateFlow<Map<String, Map<String, String>>> = _templateMeals.asStateFlow()
 
@@ -163,9 +165,17 @@ class WeekMealsViewModel @Inject constructor(
     }
 
     fun applyTemplate() {
+        lastSelection = _selectedMeals.value
         _selectedMeals.value = _templateMeals.value
         _isTemplateApplied.value = true
         _hasChanges.value = true
+    }
+
+    fun revertChanges() {
+        setCurrentWeek()
+        _selectedMeals.value = lastSelection
+        _isTemplateApplied.value = false
+        _hasChanges.value = false
     }
 
     fun clearTemplate() {

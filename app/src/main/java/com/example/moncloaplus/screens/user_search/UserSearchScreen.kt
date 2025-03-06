@@ -87,10 +87,6 @@ fun UserSearchScreen(
                 }
             },
             modifier = Modifier.fillMaxWidth(),
-//            colors = SearchBarDefaults.colors(
-//                containerColor = MaterialTheme.colorScheme.secondary,
-//                dividerColor = MaterialTheme.colorScheme.tertiary
-//            )
         ) {
             if (selectedUser == null && isActive) {
                 filteredUsers.forEach { user ->
