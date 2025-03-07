@@ -185,7 +185,13 @@ fun SaveMealsButton(buttonText: String, onSave: () -> Unit, enabled: Boolean) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MealDropdown(label: String, options: List<String>, selected: String?, onSelectionChange: (String) -> Unit) {
+fun MealDropdown(
+    label: String,
+    options: List<String>,
+    selected: String?,
+    enabled: Boolean = true,
+    onSelectionChange: (String) -> Unit
+) {
 
     var expanded by remember { mutableStateOf(false) }
     val selectedOption = selected ?: "-"
@@ -211,7 +217,7 @@ fun MealDropdown(label: String, options: List<String>, selected: String?, onSele
 
     ExposedDropdownMenuBox(
         expanded = expanded,
-        onExpandedChange = { expanded = it }
+        onExpandedChange = { if (enabled) expanded = it }
     ) {
         OutlinedTextField(
             value = selectedOption,
@@ -226,25 +232,28 @@ fun MealDropdown(label: String, options: List<String>, selected: String?, onSele
                 focusedContainerColor = containerColor,
                 unfocusedContainerColor = containerColor,
                 focusedTextColor = onContainerColor,
-                unfocusedTextColor = onContainerColor
+                unfocusedTextColor = onContainerColor,
             ),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(58.dp)
-                .menuAnchor()
+                .menuAnchor(),
+            enabled = enabled
         )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-        ) {
-            options.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(option) },
-                    onClick = {
-                        onSelectionChange(option)
-                        expanded = false
-                    }
-                )
+        if (enabled) {
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+            ) {
+                options.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(option) },
+                        onClick = {
+                            onSelectionChange(option)
+                            expanded = false
+                        }
+                    )
+                }
             }
         }
     }
@@ -252,11 +261,27 @@ fun MealDropdown(label: String, options: List<String>, selected: String?, onSele
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun MealScheduleRow(day: String, date: String?, selectedMeals: Map<String, String>, onMealSelected: (String, String) -> Unit) {
+fun MealScheduleRow(
+    day: String,
+    date: String?,
+    selectedMeals: Map<String, String>,
+    onMealSelected: (String, String) -> Unit
+) {
 
-    val today = remember { java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern(DATE_PATTERN)) }
-    val isToday = date == today
-    val backgroundColor = if (isToday) MaterialTheme.colorScheme.primary.copy(0.2f) else Color.Transparent
+    val today = remember { java.time.LocalDate.now() }
+    val formatter = remember { java.time.format.DateTimeFormatter.ofPattern(DATE_PATTERN) }
+    val parsedDate = date?.let { java.time.LocalDate.parse(it, formatter) }
+
+    val isToday = parsedDate == today
+    val isPastDay = parsedDate?.isBefore(today) == true
+
+    val backgroundColor = when {
+        isToday -> MaterialTheme.colorScheme.primary.copy(0.2f)
+        else -> Color.Transparent
+    }
+
+    val textColor = if (isPastDay) MaterialTheme.colorScheme.onSurface.copy(0.5f)
+                    else MaterialTheme.colorScheme.onSurface
 
     Row(
         modifier = Modifier
@@ -274,7 +299,7 @@ fun MealScheduleRow(day: String, date: String?, selectedMeals: Map<String, Strin
         ) {
             Text(
                 text = day,
-                style = TextStyle(fontSize = 16.sp),
+                style = TextStyle(fontSize = 16.sp, color = textColor),
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 modifier = Modifier
@@ -284,7 +309,7 @@ fun MealScheduleRow(day: String, date: String?, selectedMeals: Map<String, Strin
             if (date != null) {
                 Text(
                     text = date,
-                    style = TextStyle(fontSize = 12.sp),
+                    style = TextStyle(fontSize = 12.sp, color = textColor),
                     maxLines = 1,
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
@@ -299,9 +324,27 @@ fun MealScheduleRow(day: String, date: String?, selectedMeals: Map<String, Strin
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Box(modifier = Modifier.weight(1f)) { MealDropdown("Desayuno", BREAKFAST_OPTIONS, selectedMeals["Desayuno"]) { onMealSelected("Desayuno", it) } }
-                Box(modifier = Modifier.weight(1f)) { MealDropdown("Comida", LUNCH_OPTIONS, selectedMeals["Comida"]) { onMealSelected("Comida", it) } }
-                Box(modifier = Modifier.weight(1f)) { MealDropdown("Cena", DINNER_OPTIONS, selectedMeals["Cena"]) { onMealSelected("Cena", it) } }
+                Box(modifier = Modifier.weight(1f)) {
+                    MealDropdown(
+                        "Desayuno",
+                        BREAKFAST_OPTIONS,
+                        selectedMeals["Desayuno"],
+                        enabled = !isPastDay
+                    ) { onMealSelected("Desayuno", it) } }
+                Box(modifier = Modifier.weight(1f)) {
+                    MealDropdown(
+                        "Comida",
+                        LUNCH_OPTIONS,
+                        selectedMeals["Comida"],
+                        enabled = !isPastDay
+                    ) { onMealSelected("Comida", it) } }
+                Box(modifier = Modifier.weight(1f)) {
+                    MealDropdown(
+                        "Cena",
+                        DINNER_OPTIONS,
+                        selectedMeals["Cena"],
+                        enabled = !isPastDay
+                    ) { onMealSelected("Cena", it) } }
             }
         }
     }

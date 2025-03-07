@@ -3,7 +3,6 @@ package com.example.moncloaplus.model
 import android.icu.util.Calendar
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.runtime.remember
 import com.example.moncloaplus.SnackbarManager
 import com.example.moncloaplus.model.service.MealsService
 import com.example.moncloaplus.screens.PlusViewModel
@@ -15,6 +14,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
@@ -166,17 +167,46 @@ class WeekMealsViewModel @Inject constructor(
         _hasTemplateChanges.value = true
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun toggleTemplate(isChecked: Boolean) {
-        _isTemplateApplied.value = isChecked
-        if (isChecked) {
-            lastSelection = _selectedMeals.value
-            _selectedMeals.value = _templateMeals.value
-            _hasChanges.value = true
+        val currentDate = LocalDate.now()
+        val weekStartDate = LocalDate.parse(_currentWeekStart.value, DateTimeFormatter.ofPattern(DATE_PATTERN))
+        val weekEndDate = weekStartDate.plusDays(6)
+
+        if (weekEndDate.isBefore(currentDate)) {
+            SnackbarManager.showMessage("No puedes modificar semanas anteriores.")
+            _isTemplateApplied.value = false
+            return
         }
-        else {
+
+        _isTemplateApplied.value = isChecked
+
+        if (isChecked) {
+            lastSelection = _selectedMeals.value.toMutableMap()
+
+            _selectedMeals.update { currentMeals ->
+                currentMeals.toMutableMap().apply {
+                    _templateMeals.value.forEach { (day, meals) ->
+                        val dayDate = getDayDate(day)
+
+                        if (!dayDate.isBefore(currentDate)) {
+                            this[day] = meals.toMutableMap()
+                        }
+                    }
+                }
+            }
+            _hasChanges.value = true
+        } else {
             _selectedMeals.value = lastSelection
             _hasChanges.value = false
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun getDayDate(day: String): LocalDate {
+        val weekStart = LocalDate.parse(_currentWeekStart.value, DateTimeFormatter.ofPattern(DATE_PATTERN))
+        val dayIndex = WEEK_DAYS.indexOf(day)
+        return weekStart.plusDays(dayIndex.toLong())
     }
 
     fun clearTemplate() {
@@ -204,8 +234,8 @@ class WeekMealsViewModel @Inject constructor(
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun getCurrentDay(): String {
-        return java.time.LocalDate.now()
-            .format(java.time.format.DateTimeFormatter.ofPattern("EEEE", java.util.Locale("es", "ES")))
+        return LocalDate.now()
+            .format(DateTimeFormatter.ofPattern("EEEE", Locale("es", "ES")))
             .replaceFirstChar { it.uppercase() }
     }
 

@@ -47,16 +47,21 @@ fun ExportMealsScreen(
     val exportResult by exportViewModel.exportResult.collectAsState()
     val exportUrl by exportViewModel.exportUrl.collectAsState()
     val isExporting by exportViewModel.isExporting.collectAsState()
-
-    val weeks = mealsViewModel.getUpcomingWeeks()
-
     val selectedWeek by exportViewModel.selectedWeek.collectAsState()
     val selectedDay by exportViewModel.selectedDay.collectAsState()
 
-    var shouldDownload by remember { mutableStateOf(false) }
-
+    val weeks = mealsViewModel.getUpcomingWeeks()
     val currentWeek = weeks.firstOrNull() ?: ""
+    val isCurrentWeek = selectedWeek == currentWeek
     val currentDay = mealsViewModel.getCurrentDay()
+    val todayIndex = WEEK_DAYS.indexOf(currentDay)
+    val availableDays = if (isCurrentWeek) {
+        WEEK_DAYS.drop(todayIndex)
+    } else {
+        WEEK_DAYS
+    }
+
+    var shouldDownload by remember { mutableStateOf(false) }
 
     if (selectedWeek.isEmpty()) exportViewModel.updateSelectedWeek(currentWeek)
     if (selectedDay.isEmpty()) exportViewModel.updateSelectedDay(currentDay)
@@ -78,7 +83,7 @@ fun ExportMealsScreen(
 
         DropdownSelector(
             label = stringResource(R.string.selecciona_el_dia),
-            options = WEEK_DAYS,
+            options = availableDays,
             selected = selectedDay,
             onSelectionChange = { exportViewModel.updateSelectedDay(it) }
         )
