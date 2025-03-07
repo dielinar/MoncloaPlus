@@ -18,12 +18,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -56,7 +59,11 @@ import com.example.moncloaplus.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SingleChoiceSegmentedButton(options: List<String>, onOptionClick: (String) -> Unit) {
+fun SingleChoiceSegmentedButton(
+    options: List<String>,
+    onOptionClick: (String) -> Unit,
+    isTemplateApplied: Boolean
+) {
     var selectedOption by remember { mutableStateOf(options[1]) }
 
     SingleChoiceSegmentedButtonRow (
@@ -74,12 +81,15 @@ fun SingleChoiceSegmentedButton(options: List<String>, onOptionClick: (String) -
                     count = options.size
                 ),
                 onClick = {
-                    selectedOption = label
-                    onOptionClick(label)
+                    if (!isTemplateApplied) {
+                        selectedOption = label
+                        onOptionClick(label)
+                    }
                 },
                 selected = isSelected,
                 label = { Text(label) },
                 icon = {},
+                enabled = !isTemplateApplied,
                 colors = SegmentedButtonDefaults.colors(
                     activeContainerColor = if (isHoy) MaterialTheme.colorScheme.primary.copy(0.2f) else Color.Transparent,
                     activeContentColor = if (isHoy) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.primary,
@@ -132,23 +142,27 @@ fun ClearMealsButton(onClear: () -> Unit, title: String, dialog: String) {
 }
 
 @Composable
-fun ApplyMealsTemplateButton(isEnabled: Boolean, onApplyTemplate: () -> Unit) {
-    OutlinedButton(
-        onClick = onApplyTemplate,
-        enabled = !isEnabled,
-        shape = RoundedCornerShape(20),
-        modifier = Modifier
-            .height(40.dp)
-            .graphicsLayer(0.9f, 0.9f),
-        colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = ButtonDefaults.outlinedButtonColors().disabledContainerColor,
-            contentColor = MaterialTheme.colorScheme.tertiary,
-            disabledContentColor = MaterialTheme.colorScheme.onTertiary,
-            disabledContainerColor = MaterialTheme.colorScheme.tertiary
-        )
-    ) {
-        Text(text = stringResource(R.string.aplicar_plantilla))
-    }
+fun ApplyMealsTemplateFilterChip(
+    isSelected: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    FilterChip(
+        onClick = { onCheckedChange(!isSelected) },
+        label = { Text(stringResource(R.string.aplicar_plantilla)) },
+        selected = isSelected,
+        modifier = Modifier.padding(start = 8.dp),
+        leadingIcon = if (isSelected) {
+            {
+                Icon(
+                    imageVector = Icons.Filled.Done,
+                    contentDescription = "DoneIcon",
+                    modifier = Modifier.size(FilterChipDefaults.IconSize)
+                )
+            }
+        } else {
+            null
+        }
+    )
 }
 
 @Composable
@@ -260,16 +274,20 @@ fun MealScheduleRow(day: String, date: String?, selectedMeals: Map<String, Strin
         ) {
             Text(
                 text = day,
-                style = TextStyle(fontSize = TextUnit.Unspecified),
+                style = TextStyle(fontSize = 16.sp),
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
-                modifier = Modifier.padding(4.dp)
+                modifier = Modifier
+                    .padding(bottom = 6.dp)
+                    .align(Alignment.CenterHorizontally)
             )
             if (date != null) {
                 Text(
                     text = date,
-                    style = TextStyle(fontSize = TextUnit.Unspecified),
-                    maxLines = 1
+                    style = TextStyle(fontSize = 12.sp),
+                    maxLines = 1,
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
                 )
             }
         }

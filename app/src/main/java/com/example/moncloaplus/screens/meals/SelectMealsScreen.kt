@@ -1,7 +1,6 @@
 package com.example.moncloaplus.screens.meals
 
 import android.os.Build
-import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -67,9 +66,11 @@ fun SelectMealsScreen(
                 title = stringResource(R.string.borrar_comidas),
                 dialog = stringResource(R.string.confirmar_borrar_comidas)
             )
-            ApplyMealsTemplateButton (
-                isEnabled = isTemplateApplied,
-                onApplyTemplate = { viewModel.applyTemplate() }
+            ApplyMealsTemplateFilterChip(
+                isSelected = isTemplateApplied,
+                onCheckedChange = { isChecked ->
+                    viewModel.toggleTemplate(isChecked)
+                }
             )
         }
 
@@ -78,13 +79,17 @@ fun SelectMealsScreen(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            SingleChoiceSegmentedButton(NAVIGATION_DATE_BAR_OPTIONS) {
-                when (it) {
-                    NAVIGATION_DATE_BAR_OPTIONS[0] -> viewModel.previousWeek()
-                    NAVIGATION_DATE_BAR_OPTIONS[1] -> viewModel.setCurrentWeek()
-                    NAVIGATION_DATE_BAR_OPTIONS[2] -> viewModel.nextWeek()
-                }
-            }
+            SingleChoiceSegmentedButton(
+                NAVIGATION_DATE_BAR_OPTIONS,
+                onOptionClick = {
+                    when (it) {
+                        NAVIGATION_DATE_BAR_OPTIONS[0] -> viewModel.previousWeek()
+                        NAVIGATION_DATE_BAR_OPTIONS[1] -> viewModel.setCurrentWeek()
+                        NAVIGATION_DATE_BAR_OPTIONS[2] -> viewModel.nextWeek()
+                    }
+                },
+                isTemplateApplied = isTemplateApplied
+            )
         }
 
         viewModel.getWeekDays(currentWeekStart).forEach { (day, date) ->

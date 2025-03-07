@@ -55,11 +55,11 @@ fun ExportMealsScreen(
 
     var shouldDownload by remember { mutableStateOf(false) }
 
-    val initialWeek = weeks.firstOrNull() ?: ""
-    val initialDay = WEEK_DAYS.firstOrNull() ?: ""
+    val currentWeek = weeks.firstOrNull() ?: ""
+    val currentDay = mealsViewModel.getCurrentDay()
 
-    if (selectedWeek.isEmpty()) exportViewModel.updateSelectedWeek(initialWeek)
-    if (selectedDay.isEmpty()) exportViewModel.updateSelectedDay(initialDay)
+    if (selectedWeek.isEmpty()) exportViewModel.updateSelectedWeek(currentWeek)
+    if (selectedDay.isEmpty()) exportViewModel.updateSelectedDay(currentDay)
 
     Column(
         modifier = Modifier.fillMaxSize(),

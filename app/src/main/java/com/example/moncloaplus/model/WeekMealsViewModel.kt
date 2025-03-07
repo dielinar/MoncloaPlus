@@ -1,6 +1,9 @@
 package com.example.moncloaplus.model
 
 import android.icu.util.Calendar
+import android.os.Build
+import androidx.annotation.RequiresApi
+import androidx.compose.runtime.remember
 import com.example.moncloaplus.SnackbarManager
 import com.example.moncloaplus.model.service.MealsService
 import com.example.moncloaplus.screens.PlusViewModel
@@ -68,13 +71,12 @@ class WeekMealsViewModel @Inject constructor(
                 }
             }
         }
-        _hasChanges.value = true
-        _isTemplateApplied.value = false
+        saveWeek(_currentWeekStart.value)
     }
 
     fun saveWeek(startDate: String) {
         launchCatching {
-            val weekMeals = WeekMeals(id = startDate, meals = selectedMeals.value)
+            val weekMeals = WeekMeals(id = startDate, meals = _selectedMeals.value)
             mealsService.saveWeekData(weekMeals)
             _isTemplateApplied.value = false
             _hasChanges.value = false
@@ -164,11 +166,17 @@ class WeekMealsViewModel @Inject constructor(
         _hasTemplateChanges.value = true
     }
 
-    fun applyTemplate() {
-        lastSelection = _selectedMeals.value
-        _selectedMeals.value = _templateMeals.value
-        _isTemplateApplied.value = true
-        _hasChanges.value = true
+    fun toggleTemplate(isChecked: Boolean) {
+        _isTemplateApplied.value = isChecked
+        if (isChecked) {
+            lastSelection = _selectedMeals.value
+            _selectedMeals.value = _templateMeals.value
+            _hasChanges.value = true
+        }
+        else {
+            _selectedMeals.value = lastSelection
+            _hasChanges.value = false
+        }
     }
 
     fun clearTemplate() {
@@ -179,7 +187,7 @@ class WeekMealsViewModel @Inject constructor(
                 }
             }
         }
-        _hasTemplateChanges.value = true
+        saveTemplate()
     }
 
     fun getUpcomingWeeks(): List<String> {
@@ -192,6 +200,13 @@ class WeekMealsViewModel @Inject constructor(
         }
 
         return weeks
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun getCurrentDay(): String {
+        return java.time.LocalDate.now()
+            .format(java.time.format.DateTimeFormatter.ofPattern("EEEE", java.util.Locale("es", "ES")))
+            .replaceFirstChar { it.uppercase() }
     }
 
 }
