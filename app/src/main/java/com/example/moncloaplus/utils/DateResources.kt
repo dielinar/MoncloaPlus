@@ -1,4 +1,4 @@
-package com.example.moncloaplus.screens.meals
+package com.example.moncloaplus.utils
 
 import android.os.Build
 import androidx.annotation.RequiresApi

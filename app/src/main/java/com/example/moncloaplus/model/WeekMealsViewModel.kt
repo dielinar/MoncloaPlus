@@ -6,8 +6,8 @@ import androidx.annotation.RequiresApi
 import com.example.moncloaplus.SnackbarManager
 import com.example.moncloaplus.model.service.MealsService
 import com.example.moncloaplus.screens.PlusViewModel
-import com.example.moncloaplus.screens.meals.DATE_PATTERN
-import com.example.moncloaplus.screens.meals.WEEK_DAYS
+import com.example.moncloaplus.utils.DATE_PATTERN
+import com.example.moncloaplus.utils.WEEK_DAYS
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -170,14 +170,6 @@ class WeekMealsViewModel @Inject constructor(
     @RequiresApi(Build.VERSION_CODES.O)
     fun toggleTemplate(isChecked: Boolean) {
         val currentDate = LocalDate.now()
-        val weekStartDate = LocalDate.parse(_currentWeekStart.value, DateTimeFormatter.ofPattern(DATE_PATTERN))
-        val weekEndDate = weekStartDate.plusDays(6)
-
-        if (weekEndDate.isBefore(currentDate)) {
-            SnackbarManager.showMessage("No puedes modificar semanas anteriores.")
-            _isTemplateApplied.value = false
-            return
-        }
 
         _isTemplateApplied.value = isChecked
 
@@ -204,7 +196,9 @@ class WeekMealsViewModel @Inject constructor(
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun getDayDate(day: String): LocalDate {
-        val weekStart = LocalDate.parse(_currentWeekStart.value, DateTimeFormatter.ofPattern(DATE_PATTERN))
+        val weekStart = LocalDate.parse(_currentWeekStart.value, DateTimeFormatter.ofPattern(
+            DATE_PATTERN
+        ))
         val dayIndex = WEEK_DAYS.indexOf(day)
         return weekStart.plusDays(dayIndex.toLong())
     }

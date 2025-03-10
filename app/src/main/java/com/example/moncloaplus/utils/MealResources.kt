@@ -1,4 +1,4 @@
-package com.example.moncloaplus.screens.meals
+package com.example.moncloaplus.utils
 
 val NAVIGATION_DATE_BAR_OPTIONS: List<String> = listOf("<<", "Hoy", ">>")
 val BREAKFAST_OPTIONS: List<String> = listOf("Pronto", "Normal", "X")

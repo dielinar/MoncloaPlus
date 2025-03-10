@@ -15,7 +15,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.moncloaplus.R
 import com.example.moncloaplus.SnackbarManager
 import com.example.moncloaplus.model.WeekMealsViewModel
+import com.example.moncloaplus.utils.DATE_PATTERN
+import com.example.moncloaplus.utils.NAVIGATION_DATE_BAR_OPTIONS
 import kotlinx.coroutines.launch
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -28,6 +33,12 @@ fun SelectMealsScreen(
     val currentWeekStart by viewModel.currentWeekStart.collectAsState()
     val hasChanges by viewModel.hasChanges.collectAsState()
     val isTemplateApplied by viewModel.isTemplateApplied.collectAsState()
+
+    val currentDate = LocalDate.now()
+    val selectedWeekStartDate = LocalDate.parse(currentWeekStart, DateTimeFormatter.ofPattern(
+        DATE_PATTERN
+    ))
+    val isPastWeek = selectedWeekStartDate.isBefore(currentDate.with(DayOfWeek.MONDAY))
 
     val snackbarMessage by SnackbarManager.snackbarMessages.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -70,7 +81,8 @@ fun SelectMealsScreen(
                 isSelected = isTemplateApplied,
                 onCheckedChange = { isChecked ->
                     viewModel.toggleTemplate(isChecked)
-                }
+                },
+                enabled = !isPastWeek
             )
         }
 

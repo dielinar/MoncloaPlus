@@ -20,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,8 +34,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.moncloaplus.R
 import com.example.moncloaplus.model.WeekMealsViewModel
-import com.example.moncloaplus.screens.meals.WEEK_DAYS
-import com.example.moncloaplus.screens.meals.getExactDate
+import com.example.moncloaplus.utils.WEEK_DAYS
+import com.example.moncloaplus.utils.getExactDate
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -65,6 +66,11 @@ fun ExportMealsScreen(
 
     if (selectedWeek.isEmpty()) exportViewModel.updateSelectedWeek(currentWeek)
     if (selectedDay.isEmpty()) exportViewModel.updateSelectedDay(currentDay)
+
+    LaunchedEffect(selectedWeek) {
+        val newDay = if (selectedWeek == currentWeek) currentDay else WEEK_DAYS.first()
+        exportViewModel.updateSelectedDay(newDay)
+    }
 
     Column(
         modifier = Modifier.fillMaxSize(),

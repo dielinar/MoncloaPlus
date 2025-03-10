@@ -5,8 +5,8 @@ import android.util.Log
 import com.example.moncloaplus.model.User
 import com.example.moncloaplus.model.WeekMeals
 import com.example.moncloaplus.model.service.StorageService
-import com.example.moncloaplus.screens.meals.DATE_PATTERN
-import com.example.moncloaplus.screens.meals.WEEK_DAYS
+import com.example.moncloaplus.utils.DATE_PATTERN
+import com.example.moncloaplus.utils.WEEK_DAYS
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.toObject

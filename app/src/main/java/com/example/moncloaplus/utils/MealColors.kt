@@ -1,4 +1,4 @@
-package com.example.moncloaplus.screens.meals
+package com.example.moncloaplus.utils
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable

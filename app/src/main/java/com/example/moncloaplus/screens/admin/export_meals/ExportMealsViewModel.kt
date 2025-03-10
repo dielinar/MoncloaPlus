@@ -28,6 +28,7 @@ class ExportMealsViewModel @Inject constructor() : PlusViewModel() {
     val selectedDay: StateFlow<String> = _selectedDay.asStateFlow()
 
     fun updateSelectedWeek(newSelectedWeek: String) { _selectedWeek.value = newSelectedWeek }
+
     fun updateSelectedDay(newSelectedDay: String) { _selectedDay.value = newSelectedDay }
 
     fun exportMeals() {

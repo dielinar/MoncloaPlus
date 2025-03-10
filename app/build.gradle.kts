@@ -75,6 +75,7 @@ dependencies {
     implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
     implementation("com.google.dagger:hilt-android:2.51.1")
     implementation(libs.firebase.dataconnect)
+    implementation(libs.androidx.core.i18n)
     kapt("androidx.room:room-compiler:2.6.1")
     kapt("com.google.dagger:hilt-android-compiler:2.51.1")
 

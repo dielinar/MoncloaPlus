@@ -52,10 +52,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.moncloaplus.R
+import com.example.moncloaplus.utils.BREAKFAST_OPTIONS
+import com.example.moncloaplus.utils.DATE_PATTERN
+import com.example.moncloaplus.utils.DINNER_OPTIONS
+import com.example.moncloaplus.utils.LUNCH_OPTIONS
+import com.example.moncloaplus.utils.MealColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -101,7 +105,11 @@ fun SingleChoiceSegmentedButton(
 }
 
 @Composable
-fun ClearMealsButton(onClear: () -> Unit, title: String, dialog: String) {
+fun ClearMealsButton(
+    onClear: () -> Unit,
+    title: String,
+    dialog: String,
+) {
     var showDialog by remember { mutableStateOf(false) }
 
     SmallFloatingActionButton(
@@ -144,12 +152,14 @@ fun ClearMealsButton(onClear: () -> Unit, title: String, dialog: String) {
 @Composable
 fun ApplyMealsTemplateFilterChip(
     isSelected: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+    onCheckedChange: (Boolean) -> Unit,
+    enabled: Boolean
 ) {
     FilterChip(
         onClick = { onCheckedChange(!isSelected) },
         label = { Text(stringResource(R.string.aplicar_plantilla)) },
         selected = isSelected,
+        enabled = enabled,
         modifier = Modifier.padding(start = 8.dp),
         leadingIcon = if (isSelected) {
             {
