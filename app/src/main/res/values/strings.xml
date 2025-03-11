@@ -55,4 +55,5 @@
     <string name="selecciona_la_semana">Selecciona la semana</string>
     <string name="selecciona_el_dia">Selecciona el día</string>
     <string name="exportar_y_descargar">Exportar y descargar</string>
+    <string name="nueva_reserva">Nueva reserva</string>
 </resources>

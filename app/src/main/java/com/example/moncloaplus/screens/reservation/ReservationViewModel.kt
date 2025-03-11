@@ -13,8 +13,8 @@ import javax.inject.Inject
 class ReservationViewModel @Inject constructor(
 ): PlusViewModel() {
 
-    private val _selectedDate = MutableStateFlow<Long?>(null)
-    val selectedDate = _selectedDate.asStateFlow()
+    private val _date = MutableStateFlow<Long?>(null)
+    val date = _date.asStateFlow()
 
     private val _startTime = MutableStateFlow<Pair<Int, Int>?>(null)
     val startTime: StateFlow<Pair<Int, Int>?> = _startTime.asStateFlow()
@@ -25,13 +25,13 @@ class ReservationViewModel @Inject constructor(
     private val _note = MutableStateFlow("")
     val note: StateFlow<String> = _note.asStateFlow()
 
-    fun updateSelectedDate(newSelectedDate: Long?) { _selectedDate.value = newSelectedDate }
+    fun updateDate(newDate: Long?) { _date.value = newDate }
     fun updateStartTime(hour: Int, minute: Int) { _startTime.value = Pair(hour, minute) }
     fun updateEndTime(hour: Int, minute: Int) { _endTime.value = Pair(hour ,minute) }
     fun updateNote(newNote: String) { _note.value = newNote }
 
     fun getStartTimestamp(): Timestamp? {
-        val date = _selectedDate.value ?: return null
+        val date = _date.value ?: return null
         val (hour, minute) = _startTime.value ?: return null
 
         val calendar = Calendar.getInstance().apply {
@@ -43,7 +43,7 @@ class ReservationViewModel @Inject constructor(
     }
 
     fun getEndTimestamp(): Timestamp? {
-        val date = _selectedDate.value ?: return null
+        val date = _date.value ?: return null
         val (hour, minute) = _endTime.value ?: return null
 
         val calendar = Calendar.getInstance().apply {
