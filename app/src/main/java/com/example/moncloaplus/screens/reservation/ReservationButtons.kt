@@ -22,6 +22,7 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -47,7 +48,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -55,11 +55,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.moncloaplus.R
-import com.example.moncloaplus.utils.RESERVATION_ICONS
-import com.example.moncloaplus.utils.RESERVATION_OPTIONS
-import com.example.moncloaplus.utils.formatHourMinute
-import com.example.moncloaplus.utils.toFormattedDate
-import java.util.Calendar
+import com.example.moncloaplus.model.ReservType
+import com.example.moncloaplus.model.ReservationViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -97,7 +94,7 @@ fun ReservationDialog(
                 Spacer(modifier = Modifier.height(8.dp))
                 Text (
                     modifier = Modifier.padding(bottom = 48.dp),
-                    text = RESERVATION_OPTIONS[index],
+                    text = RESERVATION_NAMES[index],
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.tertiary
@@ -115,7 +112,7 @@ fun ReservationDialog(
                     )
                     TextButton(onClick = {showDatePicker = true})
                     {
-                        Text(text = date?.toFormattedDate() ?: "Selecciona día", fontSize = 16.sp)
+                        Text(text = date.toFormattedDate(), fontSize = 16.sp)
                     }
                 }
                 HorizontalDivider(modifier = Modifier.padding(top = 6.dp, bottom = 6.dp), thickness = 2.dp)
@@ -130,7 +127,7 @@ fun ReservationDialog(
                         style = MaterialTheme.typography.bodyLarge
                     )
                     TextButton(onClick = {showStartTimePicker = true}) {
-                        Text(text = startTime?.let { formatHourMinute(it.first, it.second) } ?: "Hora de inicio", fontSize = 16.sp)
+                        Text(text = startTime.let { formatHourMinute(it.first, it.second) }, fontSize = 16.sp)
                     }
                 }
 
@@ -144,7 +141,7 @@ fun ReservationDialog(
                         style = MaterialTheme.typography.bodyLarge
                     )
                     TextButton(onClick = {showEndTimePicker = true}) {
-                        Text(text = endTime?.let { formatHourMinute(it.first, it.second) } ?: "Hora de fin", fontSize = 16.sp)
+                        Text(text = endTime.let { formatHourMinute(it.first, it.second) }, fontSize = 16.sp)
                     }
                 }
                 HorizontalDivider(modifier = Modifier.padding(top = 6.dp), thickness = 2.dp)
@@ -169,8 +166,8 @@ fun ReservationDialog(
                     modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp, end = 24.dp),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    TextButton(onClick = onDismiss) { Text("Cancelar", color = MaterialTheme.colorScheme.tertiary) }
-                    TextButton(onClick = onConfirm) { Text("Guardar", color = MaterialTheme.colorScheme.tertiary) }
+                    TextButton(onClick = onDismiss) { Text("Cancelar", color = MaterialTheme.colorScheme.tertiary, fontSize = 16.sp) }
+                    TextButton(onClick = onConfirm) { Text("Guardar", color = MaterialTheme.colorScheme.tertiary, fontSize = 16.sp) }
                 }
             }
         }
@@ -214,7 +211,7 @@ fun ReservationDialog(
 @Composable
 fun NewReservationButton(
     index: Int,
-    viewModel: ReservationViewModel
+    viewModel: ReservationViewModel,
 ) {
 
     var showDialog by remember { mutableStateOf(false) }
@@ -224,12 +221,13 @@ fun NewReservationButton(
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        ExtendedFloatingActionButton(
-            modifier = Modifier.padding(start = 14.dp, top = 14.dp),
-            onClick = { showDialog = true },
-            icon = { Icon(Icons.Filled.Add, null) },
-            text = { Text(stringResource(R.string.nueva_reserva)) }
-        )
+        FloatingActionButton(
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+            onClick = { showDialog = true }
+        ) {
+            Icon(Icons.Filled.Add, null)
+        }
     }
 
     if (showDialog) {
@@ -237,7 +235,10 @@ fun NewReservationButton(
             index,
             viewModel,
             onDismiss = { showDialog = false },
-            onConfirm = { showDialog = false }
+            onConfirm = {
+                viewModel.saveReservation(ReservType.entries[index])
+                showDialog = false
+            }
         )
     }
 }
@@ -246,13 +247,13 @@ fun NewReservationButton(
 @Composable
 fun DatePickerModal(
     viewModel: ReservationViewModel,
-    onDateSelected: (Long?) -> Unit,
+    onDateSelected: (Long) -> Unit,
     onDismiss: () -> Unit
 ) {
     val selectedDate by viewModel.date.collectAsState()
 
     val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = selectedDate ?: System.currentTimeMillis()
+        initialSelectedDateMillis = selectedDate
     )
 
     val confirmEnabled = remember { derivedStateOf { datePickerState.selectedDateMillis != null } }
@@ -261,7 +262,7 @@ fun DatePickerModal(
         onDismissRequest = onDismiss,
         confirmButton = {
             TextButton(
-                onClick = { onDateSelected(datePickerState.selectedDateMillis) },
+                onClick = { datePickerState.selectedDateMillis?.let { onDateSelected(it) } },
                 enabled = confirmEnabled.value
             ) { Text("Aceptar") }
         },
@@ -284,8 +285,8 @@ fun AdvancedTimePicker(
 ) {
 
     val timeState by if (isStartTime) viewModel.startTime.collectAsState() else viewModel.endTime.collectAsState()
-    val defaultHour = timeState?.first ?: Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-    val defaultMinute = timeState?.second ?: Calendar.getInstance().get(Calendar.MINUTE)
+    val defaultHour = timeState.first
+    val defaultMinute = timeState.second
 
     val timePickerState = rememberTimePickerState(
         initialHour = defaultHour,

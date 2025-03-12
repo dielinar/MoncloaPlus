@@ -16,7 +16,6 @@ import com.example.moncloaplus.R
 import com.example.moncloaplus.SnackbarManager
 import com.example.moncloaplus.model.WeekMealsViewModel
 import com.example.moncloaplus.utils.DATE_PATTERN
-import com.example.moncloaplus.utils.NAVIGATION_DATE_BAR_OPTIONS
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDate

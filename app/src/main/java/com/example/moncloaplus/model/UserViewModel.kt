@@ -24,7 +24,7 @@ class UserViewModel @Inject constructor (
 ): PlusViewModel() {
 
     private val _users = MutableStateFlow<List<User>>(emptyList())
-    val users: StateFlow<List<User>> = _users
+    val users: StateFlow<List<User>> = _users.asStateFlow()
 
     private val _firstName = MutableStateFlow("")
     val firstName: StateFlow<String> = _firstName.asStateFlow()

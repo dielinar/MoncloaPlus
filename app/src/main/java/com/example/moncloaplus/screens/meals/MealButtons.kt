@@ -55,11 +55,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.moncloaplus.R
-import com.example.moncloaplus.utils.BREAKFAST_OPTIONS
 import com.example.moncloaplus.utils.DATE_PATTERN
-import com.example.moncloaplus.utils.DINNER_OPTIONS
-import com.example.moncloaplus.utils.LUNCH_OPTIONS
-import com.example.moncloaplus.utils.MealColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -118,7 +114,7 @@ fun ClearMealsButton(
             .size(40.dp)
             .graphicsLayer(0.9f, 0.9f),
         containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-        contentColor = MaterialTheme.colorScheme.tertiary
+        contentColor = MaterialTheme.colorScheme.onTertiaryContainer
     ) {
         Icon(
             painter = painterResource(R.drawable.delete_24px),

@@ -13,6 +13,8 @@ class MealsServiceImpl @Inject constructor(
     accService: AccountServiceImpl
 ): MealsService {
 
+    private val userId = accService.currentUserId
+
     private val usersCollection = db.collection("users")
 
     private val weeksCollection: CollectionReference
@@ -20,8 +22,6 @@ class MealsServiceImpl @Inject constructor(
 
     private val templateCollection: CollectionReference
         get() = userId.let { usersCollection.document(it).collection("template") }
-
-    private val userId = accService.currentUserId
 
     override suspend fun saveWeekData(weekMeals: WeekMeals) {
         weeksCollection.document(weekMeals.id)

@@ -5,24 +5,30 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.moncloaplus.screens.reservation.NewReservationButton
-import com.example.moncloaplus.screens.reservation.ReservationViewModel
-import com.example.moncloaplus.utils.GYM_INDEX
+import com.example.moncloaplus.model.ReservationViewModel
+import com.example.moncloaplus.screens.reservation.GYM_INDEX
+import com.example.moncloaplus.screens.reservation.PADEL_INDEX
 
 @Composable
 fun GymScreen(
-    viewModel: ReservationViewModel = hiltViewModel()
-
+    resViewModel: ReservationViewModel = hiltViewModel()
 ) {
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
-    ) {
-        NewReservationButton(GYM_INDEX, viewModel)
+    val reservations by resViewModel.reservationsOfType.collectAsState()
+
+    LaunchedEffect(Unit) {
+        resViewModel.fetchAllReservationsOfType(GYM_INDEX)
+    }
+
+    Column(modifier = Modifier.fillMaxSize())
+    {
+        reservations[GYM_INDEX]?.let { ReservationList(it) }
     }
 
 }

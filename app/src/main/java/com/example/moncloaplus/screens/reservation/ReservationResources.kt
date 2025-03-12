@@ -1,16 +1,16 @@
-package com.example.moncloaplus.utils
+package com.example.moncloaplus.screens.reservation
 
 import com.example.moncloaplus.R
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-val PADEL_INDEX = 0
-val GYM_INDEX = 1
-val MUSIC_STUDIO_INDEX = 2
-val PIANO_INDEX = 3
+const val PADEL_INDEX = 0
+const val GYM_INDEX = 1
+const val MUSIC_STUDIO_INDEX = 2
+const val PIANO_INDEX = 3
 
-val RESERVATION_OPTIONS: List<String> = listOf("Pádel", "Gimnasio", "Estudio", "Piano")
+val RESERVATION_NAMES: List<String> = listOf("Pádel", "Gimnasio", "Estudio", "Piano")
 
 val PADEL_ICON = R.drawable.sports_tennis_24px
 val GYM_ICON = R.drawable.fitness_center_24px
