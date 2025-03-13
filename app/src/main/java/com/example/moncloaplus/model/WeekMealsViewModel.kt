@@ -64,17 +64,6 @@ class WeekMealsViewModel @Inject constructor(
         _hasChanges.value = true
     }
 
-    fun clearMeals() {
-        _selectedMeals.update { currentMeals ->
-            currentMeals.toMutableMap().apply {
-                keys.forEach { day ->
-                    this[day] = this[day]?.keys?.associateWith { "-" }?.toMutableMap() ?: mutableMapOf()
-                }
-            }
-        }
-        saveWeek(_currentWeekStart.value)
-    }
-
     fun saveWeek(startDate: String) {
         launchCatching {
             val weekMeals = WeekMeals(id = startDate, meals = _selectedMeals.value)
@@ -165,6 +154,24 @@ class WeekMealsViewModel @Inject constructor(
             }
         }
         _hasTemplateChanges.value = true
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun clearMeals() {
+        val currentDate = LocalDate.now()
+
+        _selectedMeals.update { currentMeals ->
+            currentMeals.toMutableMap().apply {
+                keys.forEach { day ->
+                    val dayDate = getDayDate(day)
+
+                    if (!dayDate.isBefore(currentDate)) {
+                        this[day] = this[day]?.keys?.associateWith { "-" }?.toMutableMap() ?: mutableMapOf()
+                    }
+                }
+            }
+        }
+        saveWeek(_currentWeekStart.value)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

@@ -74,7 +74,8 @@ fun SelectMealsScreen(
             ClearMealsButton (
                 onClear = { viewModel.clearMeals() },
                 title = stringResource(R.string.borrar_comidas),
-                dialog = stringResource(R.string.confirmar_borrar_comidas)
+                dialog = stringResource(R.string.confirmar_borrar_comidas),
+                enabled = !isPastWeek
             )
             ApplyMealsTemplateFilterChip(
                 isSelected = isTemplateApplied,

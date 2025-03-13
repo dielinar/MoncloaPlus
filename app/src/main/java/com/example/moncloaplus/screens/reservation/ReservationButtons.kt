@@ -222,8 +222,8 @@ fun NewReservationButton(
         verticalAlignment = Alignment.CenterVertically
     ) {
         FloatingActionButton(
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
             onClick = { showDialog = true }
         ) {
             Icon(Icons.Filled.Add, null)

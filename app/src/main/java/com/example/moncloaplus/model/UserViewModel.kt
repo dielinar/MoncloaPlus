@@ -23,6 +23,9 @@ class UserViewModel @Inject constructor (
     private val accountService: AccountService
 ): PlusViewModel() {
 
+    private val _currentUser = MutableStateFlow<User?>(null)
+    val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
+
     private val _users = MutableStateFlow<List<User>>(emptyList())
     val users: StateFlow<List<User>> = _users.asStateFlow()
 
@@ -58,6 +61,10 @@ class UserViewModel @Inject constructor (
         firstName, firstSurname, secondSurname, room, initials, city, degree, university
     ) { fields ->
         fields.all { it.isNotBlank() }
+    }
+
+    init {
+        fetchCurrentUser()
     }
 
     fun updateFirstName(newFirstName: String) { _firstName.value = newFirstName }
@@ -121,6 +128,16 @@ class UserViewModel @Inject constructor (
         launchCatching {
             val user = storageService.getUser(userId)
             onResult(user)
+        }
+    }
+
+    private fun fetchCurrentUser() {
+        launchCatching {
+            val userId = accountService.currentUserId
+            if (userId.isNotBlank()) {
+                val user = storageService.getUser(userId)
+                _currentUser.value = user
+            }
         }
     }
 

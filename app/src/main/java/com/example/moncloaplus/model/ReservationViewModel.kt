@@ -28,15 +28,11 @@ class ReservationViewModel @Inject constructor(
     private val _note = MutableStateFlow("")
     val note: StateFlow<String> = _note.asStateFlow()
 
-    private val _userReservations = MutableStateFlow<List<Reservation>>(emptyList())
-    val userReservations: StateFlow<List<Reservation>> = _userReservations.asStateFlow()
+    private val _userReservations = MutableStateFlow<Map<Int, List<Reservation>>>(emptyMap())
+    val userReservations: StateFlow<Map<Int, List<Reservation>>> = _userReservations.asStateFlow()
 
     private val _reservationsOfType = MutableStateFlow<Map<Int, List<Reservation>>>(emptyMap())
     val reservationsOfType: StateFlow<Map<Int, List<Reservation>>> = _reservationsOfType.asStateFlow()
-
-    init {
-        fetchUserReservations()
-    }
 
     fun updateDate(newDate: Long) { _date.value = newDate }
     fun updateStartTime(hour: Int, minute: Int) { _startTime.value = Pair(hour, minute) }
@@ -54,15 +50,17 @@ class ReservationViewModel @Inject constructor(
             )
             reservationService.saveReservationData(reservation)
             SnackbarManager.showMessage("Reserva guardada correctamente.")
-            fetchUserReservations()
+            fetchUserReservations(type.ordinal)
             fetchAllReservationsOfType(type.ordinal)
         }
     }
 
-    private fun fetchUserReservations() {
+    fun fetchUserReservations(type: Int) {
         launchCatching {
-            val reservationList = reservationService.getUserReservations()
-            _userReservations.value = reservationList
+            val reservationList = reservationService.getUserReservations(type)
+            _userReservations.value = _userReservations.value.toMutableMap().apply {
+                this[type] = reservationList
+            }
         }
     }
 

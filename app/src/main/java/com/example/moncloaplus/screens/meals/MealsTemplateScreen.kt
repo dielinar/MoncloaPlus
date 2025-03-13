@@ -75,7 +75,8 @@ fun MealsTemplateScreen(
             ClearMealsButton (
                 onClear = { viewModel.clearTemplate() },
                 title = stringResource(R.string.borrar_plantilla),
-                dialog = stringResource(R.string.descripcion_borrar_plantilla)
+                dialog = stringResource(R.string.descripcion_borrar_plantilla),
+                enabled = true
             )
         }
 
