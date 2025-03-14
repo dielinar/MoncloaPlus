@@ -3,6 +3,7 @@ package com.example.moncloaplus.screens.reservation
 import com.example.moncloaplus.R
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 
 const val PADEL_INDEX = 0
@@ -25,6 +26,29 @@ fun Long.toFormattedDate(): String {
     return sdf.format(calendar.time).replaceFirstChar { it.uppercaseChar() }
 }
 
+fun convertMillisToDate(millis: Long): String {
+    val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+    return formatter.format(Date(millis))
+}
+
 fun formatHourMinute(hour: Int, minute: Int): String {
     return String.format(Locale.getDefault(), "%02d:%02d", hour, minute)
+}
+
+fun getDefaultStartTime(): Pair<Int, Int> {
+    val calendar = Calendar.getInstance()
+    val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
+    val currentMinute = calendar.get(Calendar.MINUTE)
+
+    return if (currentMinute < 30) {
+        currentHour to 30
+    } else {
+        val nextHour = (currentHour + 1) % 24
+        nextHour to 0
+    }
+}
+
+fun getDefaultEndTime(startTime: Pair<Int, Int>): Pair<Int, Int> {
+    val endHour = (startTime.first + 1) % 24
+    return endHour to startTime.second
 }

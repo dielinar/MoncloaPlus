@@ -2,27 +2,37 @@ package com.example.moncloaplus.model
 
 import com.example.moncloaplus.SnackbarManager
 import com.example.moncloaplus.model.service.ReservationService
+import com.example.moncloaplus.model.service.impl.AccountServiceImpl
+import com.example.moncloaplus.model.service.impl.StorageServiceImpl
 import com.example.moncloaplus.screens.PlusViewModel
+import com.example.moncloaplus.screens.reservation.getDefaultEndTime
+import com.example.moncloaplus.screens.reservation.getDefaultStartTime
 import com.google.firebase.Timestamp
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import java.util.Calendar
 import javax.inject.Inject
 
 @HiltViewModel
 class ReservationViewModel @Inject constructor(
-    private val reservationService: ReservationService
+    private val reservationService: ReservationService,
+    private val accountService: AccountServiceImpl,
+    private val storageService: StorageServiceImpl
 ): PlusViewModel() {
 
-    private val _date = MutableStateFlow(System.currentTimeMillis())
-    val date = _date.asStateFlow()
+    private val _newDate = MutableStateFlow(System.currentTimeMillis())
+    val newDate = _newDate.asStateFlow()
+
+    private val _currentDate = MutableStateFlow(System.currentTimeMillis())
+    val currentDate = _currentDate.asStateFlow()
 
     private val _startTime = MutableStateFlow(getDefaultStartTime())
     val startTime: StateFlow<Pair<Int, Int>> = _startTime.asStateFlow()
 
-    private val _endTime = MutableStateFlow(getDefaultEndTime(_startTime.value.first, _startTime.value.second))
+    private val _endTime = MutableStateFlow(getDefaultEndTime(_startTime.value))
     val endTime: StateFlow<Pair<Int, Int>> = _endTime.asStateFlow()
 
     private val _note = MutableStateFlow("")
@@ -34,24 +44,43 @@ class ReservationViewModel @Inject constructor(
     private val _reservationsOfType = MutableStateFlow<Map<Int, List<Reservation>>>(emptyMap())
     val reservationsOfType: StateFlow<Map<Int, List<Reservation>>> = _reservationsOfType.asStateFlow()
 
-    fun updateDate(newDate: Long) { _date.value = newDate }
-    fun updateStartTime(hour: Int, minute: Int) { _startTime.value = Pair(hour, minute) }
-    fun updateEndTime(hour: Int, minute: Int) { _endTime.value = Pair(hour ,minute) }
+    fun updateNewDate(newDate: Long) { _newDate.value = newDate }
+    fun updateCurrentDate(newCurrentDay: Long) { _currentDate.value = newCurrentDay }
+    fun updateStartTime(newStartTime: Pair<Int, Int>) { _startTime.value = newStartTime }
+    fun updateEndTime(newEndTime: Pair<Int, Int>) { _endTime.value = newEndTime }
     fun updateNote(newNote: String) { _note.value = newNote }
 
-    fun saveReservation(type: ReservType) {
+    fun createReservation(type: ReservType) {
         launchCatching {
+            val currentUser = storageService.getUser(accountService.currentUserId)
+
             val reservation = Reservation(
                 id = "",
                 inicio = getStartTimestamp(),
                 final = getEndTimestamp(),
                 nota = _note.value,
-                tipo = type
+                tipo = type,
+                owner = currentUser
             )
-            reservationService.saveReservationData(reservation)
-            SnackbarManager.showMessage("Reserva guardada correctamente.")
-            fetchUserReservations(type.ordinal)
-            fetchAllReservationsOfType(type.ordinal)
+            reservationService.createReservation(reservation)
+            SnackbarManager.showMessage("Reserva creada correctamente.")
+            addToUserReservations(reservation)
+            addToReservationsOfType(reservation)
+
+            // Resetear valores
+            updateNewDate(System.currentTimeMillis())
+            updateStartTime(getDefaultStartTime())
+            updateEndTime(getDefaultEndTime(_startTime.value))
+            updateNote("")
+        }
+    }
+
+    fun deleteReservation(reservationId: String) {
+        launchCatching {
+            reservationService.deleteReservation(reservationId)
+            SnackbarManager.showMessage("Reserva eliminada correctamente.")
+            removeFromUserReservations(reservationId)
+            removeFromReservationsOfType(reservationId)
         }
     }
 
@@ -64,17 +93,51 @@ class ReservationViewModel @Inject constructor(
         }
     }
 
-    fun fetchAllReservationsOfType(index: Int) {
+    fun fetchAllReservationsOfType(type: Int) {
         launchCatching {
-            val reservationList = reservationService.getAllReservationsOfType(index)
+            val reservationList = reservationService.getAllReservationsOfType(type)
             _reservationsOfType.value = _reservationsOfType.value.toMutableMap().apply {
-                this[index] = reservationList
+                this[type] = reservationList
+            }
+        }
+    }
+
+    private fun addToUserReservations(reservation: Reservation) {
+        val key = reservation.tipo.ordinal
+        val currentList = _userReservations.value[key] ?: emptyList()
+        val newList = (currentList + reservation).sortedBy { it.inicio }
+        _userReservations.value = _userReservations.value.toMutableMap().apply {
+            put(key, newList)
+        }
+    }
+
+    private fun removeFromUserReservations(reservationId: String) {
+        _userReservations.value = _userReservations.value.toMutableMap().apply {
+            forEach { (key, list) ->
+                put(key, list.filterNot { it.id == reservationId })
+            }
+        }
+    }
+
+    private fun addToReservationsOfType(reservation: Reservation) {
+        val key = reservation.tipo.ordinal
+        val currentList = _reservationsOfType.value[key] ?: emptyList()
+        val newList = (currentList + reservation).sortedBy { it.inicio }
+        _reservationsOfType.value = _reservationsOfType.value.toMutableMap().apply {
+            put(key, newList)
+        }
+    }
+
+    private fun removeFromReservationsOfType(reservationId: String) {
+        _reservationsOfType.value = _reservationsOfType.value.toMutableMap().apply {
+            forEach { (key, list) ->
+                put(key, list.filterNot { it.id == reservationId })
             }
         }
     }
 
     private fun getStartTimestamp(): Timestamp {
-        val date = _date.value
+        val date = _newDate.value
         val (hour, minute) = _startTime.value
 
         val calendar = Calendar.getInstance().apply {
@@ -86,7 +149,7 @@ class ReservationViewModel @Inject constructor(
     }
 
     private fun getEndTimestamp(): Timestamp {
-        val date = _date.value
+        val date = _newDate.value
         val (hour, minute) = _endTime.value
 
         val calendar = Calendar.getInstance().apply {
@@ -95,24 +158,6 @@ class ReservationViewModel @Inject constructor(
             set(Calendar.MINUTE, minute)
         }
         return Timestamp(calendar.time)
-    }
-
-    private fun getDefaultStartTime(): Pair<Int, Int> {
-        val calendar = Calendar.getInstance()
-        val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
-        val currentMinute = calendar.get(Calendar.MINUTE)
-
-        return if (currentMinute < 30) {
-            currentHour to 30
-        } else {
-            val nextHour = (currentHour + 1) % 24
-            nextHour to 0
-        }
-    }
-
-    private fun getDefaultEndTime(startHour: Int, startMinute: Int): Pair<Int, Int> {
-        val endHour = (startHour + 1) % 24
-        return endHour to startMinute
     }
 
 }

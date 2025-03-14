@@ -4,11 +4,9 @@ import android.util.Log
 import com.example.moncloaplus.model.ReservType
 import com.example.moncloaplus.model.Reservation
 import com.example.moncloaplus.model.service.ReservationService
-import com.example.moncloaplus.screens.reservation.RESERVATION_NAMES
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -28,16 +26,22 @@ class ReservationServiceImpl @Inject constructor(
     private val reservationsCollection: CollectionReference
         get() = userId.let { usersCollection.document(it).collection("reservations") }
 
-    override suspend fun saveReservationData(reservation: Reservation) {
+    override suspend fun createReservation(reservation: Reservation) {
         reservationsCollection
             .add(reservation)
             .await()
     }
 
-    override suspend fun getUserReservations(index: Int): List<Reservation> = coroutineScope {
+    override suspend fun deleteReservation(reservationId: String) {
+        reservationsCollection.document(reservationId)
+            .delete()
+            .await()
+    }
+
+    override suspend fun getUserReservations(type: Int): List<Reservation> = coroutineScope {
         try {
             val result = reservationsCollection
-                .whereEqualTo("tipo", ReservType.entries[index].name)
+                .whereEqualTo("tipo", ReservType.entries[type].name)
                 .orderBy("inicio", Query.Direction.ASCENDING)
                 .get().await()
 
@@ -61,10 +65,10 @@ class ReservationServiceImpl @Inject constructor(
         }
     }
 
-    override suspend fun getAllReservationsOfType(index: Int): List<Reservation> = coroutineScope {
+    override suspend fun getAllReservationsOfType(type: Int): List<Reservation> = coroutineScope {
         try {
             val result = db.collectionGroup("reservations")
-                .whereEqualTo("tipo", ReservType.entries[index].name)
+                .whereEqualTo("tipo", ReservType.entries[type].name)
                 .orderBy("inicio", Query.Direction.ASCENDING)
                 .get().await()
 
@@ -83,7 +87,7 @@ class ReservationServiceImpl @Inject constructor(
             }
             reservationsDeferred.awaitAll()
         } catch (e: Exception) {
-            Log.e("Firestore", "Error al obtener las reservas de ${ReservType.entries[index]}", e)
+            Log.e("Firestore", "Error al obtener las reservas de ${ReservType.entries[type]}", e)
             emptyList()
         }
     }

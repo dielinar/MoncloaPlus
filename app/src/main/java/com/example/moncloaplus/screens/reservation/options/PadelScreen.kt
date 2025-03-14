@@ -5,15 +5,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -21,12 +15,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.moncloaplus.model.User
 import com.example.moncloaplus.screens.account_center.AccountCenterViewModel
 import com.example.moncloaplus.model.ReservationViewModel
+import com.example.moncloaplus.screens.reservation.DatePickerFieldToModal
+import com.example.moncloaplus.screens.reservation.MyReservationsButton
+import com.example.moncloaplus.screens.reservation.NewReservationButton
 import com.example.moncloaplus.screens.reservation.PADEL_INDEX
 
 @Composable
@@ -44,57 +41,38 @@ fun PadelScreen(
         resViewModel.fetchAllReservationsOfType(PADEL_INDEX)
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 24.dp, end = 24.dp, top = 16.dp)
-        ) {
-            Spacer(modifier = Modifier.weight(1f))
-            MyReservationsButton(
-                selected = selected,
-                onSelectedChange = { newValue ->
-                    selected = newValue
-                    if (newValue) {
-                        resViewModel.fetchUserReservations(PADEL_INDEX)
+    Scaffold(
+        floatingActionButton = {
+            NewReservationButton(PADEL_INDEX, resViewModel)
+        },
+        floatingActionButtonPosition = FabPosition.End
+    ) { innerPadding ->
+        Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 24.dp, end = 24.dp, top = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                DatePickerFieldToModal(resViewModel)
+                Spacer(modifier = Modifier.weight(1f))
+                MyReservationsButton(
+                    selected = selected,
+                    onSelectedChange = { newValue ->
+                        selected = newValue
+                        if (newValue) {
+                            resViewModel.fetchUserReservations(PADEL_INDEX)
+                        }
                     }
-                }
-            )
-        }
-
-        if (selected) {
-            userReservations[PADEL_INDEX]?.let {
-                ReservationList(it, currentUser)
-            }
-        } else {
-            reservations[PADEL_INDEX]?.let {
-                ReservationList(it, currentUser)
-            }
-        }
-
-    }
-
-}
-
-@Composable
-fun MyReservationsButton(
-    selected: Boolean,
-    onSelectedChange: (Boolean) -> Unit
-) {
-    FilterChip(
-        onClick = { onSelectedChange(!selected) },
-        label = { Text("Mis reservas") },
-        selected = selected,
-        leadingIcon = if (selected) {
-            {
-                Icon(
-                    imageVector = Icons.Filled.Done,
-                    contentDescription = "Done icon",
-                    modifier = Modifier.size(FilterChipDefaults.IconSize)
                 )
             }
-        } else {
-            null
+
+            val reservationsToShow = if (selected) userReservations[PADEL_INDEX] else reservations[PADEL_INDEX]
+            reservationsToShow?.let {
+                ReservationList(it, currentUser, onDelete = { resId -> resViewModel.deleteReservation(resId) })
+            }
+
         }
-    )
+    }
+
 }

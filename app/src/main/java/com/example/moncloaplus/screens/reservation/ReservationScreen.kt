@@ -24,9 +24,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.moncloaplus.model.ReservationViewModel
-import com.example.moncloaplus.model.User
-import com.example.moncloaplus.model.UserViewModel
-import com.example.moncloaplus.screens.account_center.AccountCenterViewModel
 import com.example.moncloaplus.screens.reservation.options.GymScreen
 import com.example.moncloaplus.screens.reservation.options.MusicStudioScreen
 import com.example.moncloaplus.screens.reservation.options.PadelScreen
@@ -37,10 +34,8 @@ fun ReservationScreen(
     navController: NavHostController,
     resViewModel: ReservationViewModel = hiltViewModel()
 ) {
-    val currentBackStackEntry by navController.currentBackStackEntryFlow.collectAsState(initial = navController.currentBackStackEntry)
-    val currentRoute = currentBackStackEntry?.destination?.route
-
-    val selectedIndex = RESERVATION_ROUTES.indexOf(currentRoute).coerceAtLeast(0)
+    val currentRoute by navController.currentBackStackEntryFlow
+        .collectAsState(initial = navController.currentBackStackEntry)
 
     Scaffold(
         bottomBar = {
@@ -49,16 +44,12 @@ fun ReservationScreen(
                     NavigationBarItem(
                         icon = { Icon(painter = painterResource(RESERVATION_ICONS[index]),null) },
                         label = { Text(text = item) },
-                        selected = currentRoute == RESERVATION_ROUTES[index],
+                        selected = currentRoute?.destination?.route == RESERVATION_ROUTES[index],
                         onClick = { navController.navigate(RESERVATION_ROUTES[index]) }
                     )
                 }
             }
-        },
-        floatingActionButton = {
-            NewReservationButton(selectedIndex, resViewModel)
-        },
-        floatingActionButtonPosition = FabPosition.Start
+        }
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
             NavHost(

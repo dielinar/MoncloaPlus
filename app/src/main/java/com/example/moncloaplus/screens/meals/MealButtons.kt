@@ -135,7 +135,7 @@ fun ClearMealsButton(
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            icon = { Icon(Icons.Default.Warning, null) },
+            icon = { Icon(painterResource(R.drawable.delete_24px), null) },
             title = { Text(text = title) },
             text = { Text(text = dialog) },
             confirmButton = {

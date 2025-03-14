@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -24,6 +25,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,11 +34,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.moncloaplus.R
 import com.example.moncloaplus.model.Reservation
 import com.example.moncloaplus.model.User
 import com.example.moncloaplus.screens.reservation.ReservationColors
@@ -44,23 +48,30 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 @Composable
-fun ReservationList(reservationsList: List<Reservation>, currentUser: User) {
+fun ReservationList(
+    reservationsList: List<Reservation>,
+    currentUser: User,
+    onDelete: (String) -> Unit
+) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(reservationsList) { reservation ->
-            ReservationCard(reservation, currentUser)
+            ReservationCard(reservation, currentUser, onDelete)
         }
     }
 }
 
 @Composable
-fun ReservationCard(reservation: Reservation, currentUser: User) {
+fun ReservationCard(
+    reservation: Reservation,
+    currentUser: User,
+    onDelete: (String) -> Unit
+) {
 
     val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-    val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
     val isCurrentUser = reservation.owner?.id == currentUser.id
 
@@ -108,7 +119,12 @@ fun ReservationCard(reservation: Reservation, currentUser: User) {
                 }
             }
 
-            if (isCurrentUser) MenuOptions(modifier = Modifier.align(Alignment.TopEnd))
+            if (isCurrentUser)
+                MenuOptions(
+                    modifier = Modifier.align(Alignment.TopEnd),
+                    reservationId = reservation.id,
+                    onDelete = onDelete
+                )
 
         }
     }
@@ -149,8 +165,13 @@ fun NoteLabel(text: String) {
 }
 
 @Composable
-fun MenuOptions(modifier: Modifier) {
+fun MenuOptions(
+    modifier: Modifier,
+    reservationId: String,
+    onDelete: (String) -> Unit
+) {
     var expanded by remember { mutableStateOf(false) }
+    var showDialog by remember { mutableStateOf(false) }
 
     Box(modifier = modifier) {
         IconButton(onClick = { expanded = !expanded }) {
@@ -169,11 +190,35 @@ fun MenuOptions(modifier: Modifier) {
             )
             DropdownMenuItem(
                 text = { Text("Eliminar") },
-                leadingIcon = { Icon(Icons.Filled.Delete, contentDescription = "Eliminar")},
+                leadingIcon = { Icon(painterResource(R.drawable.delete_24px), "Eliminar")},
                 onClick = {
-                    /* Do something... */
+                    expanded = false
+                    showDialog = true
                 }
             )
         }
     }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            icon = { Icon(painterResource(R.drawable.delete_24px), null) },
+            title = { Text("Eliminar reserva") },
+            text = { Text("¿Estás seguro de eliminar tu reserva?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDelete(reservationId)
+                        showDialog = false
+                    }
+                ) { Text("Sí, eliminar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text("Atrás")
+                }
+            }
+        )
+    }
+
 }
