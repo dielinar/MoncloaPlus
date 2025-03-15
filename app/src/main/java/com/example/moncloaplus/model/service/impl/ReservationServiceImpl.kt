@@ -1,9 +1,11 @@
 package com.example.moncloaplus.model.service.impl
 
+import android.icu.util.Calendar
 import android.util.Log
 import com.example.moncloaplus.model.ReservType
 import com.example.moncloaplus.model.Reservation
 import com.example.moncloaplus.model.service.ReservationService
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -38,10 +40,29 @@ class ReservationServiceImpl @Inject constructor(
             .await()
     }
 
-    override suspend fun getUserReservations(type: Int): List<Reservation> = coroutineScope {
+    override suspend fun getUserReservations(type: Int, dateMillis: Long): List<Reservation> = coroutineScope {
+        val calendarStart = Calendar.getInstance().apply {
+            timeInMillis = dateMillis
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val calendarEnd = Calendar.getInstance().apply {
+            timeInMillis = dateMillis
+            set(Calendar.HOUR_OF_DAY, 23)
+            set(Calendar.MINUTE, 59)
+            set(Calendar.SECOND, 59)
+            set(Calendar.MILLISECOND, 999)
+        }
+
+        val startOfDayTimestamp = Timestamp(calendarStart.time)
+        val endOfDayTimestamp = Timestamp(calendarEnd.time)
         try {
             val result = reservationsCollection
                 .whereEqualTo("tipo", ReservType.entries[type].name)
+                .whereGreaterThan("inicio", startOfDayTimestamp)
+                .whereLessThan("inicio", endOfDayTimestamp)
                 .orderBy("inicio", Query.Direction.ASCENDING)
                 .get().await()
 
@@ -65,12 +86,33 @@ class ReservationServiceImpl @Inject constructor(
         }
     }
 
-    override suspend fun getAllReservationsOfType(type: Int): List<Reservation> = coroutineScope {
+    override suspend fun getReservationsOnDay(type: Int, dateMillis: Long): List<Reservation> = coroutineScope {
+        val calendarStart = Calendar.getInstance().apply {
+            timeInMillis = dateMillis
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val calendarEnd = Calendar.getInstance().apply {
+            timeInMillis = dateMillis
+            set(Calendar.HOUR_OF_DAY, 23)
+            set(Calendar.MINUTE, 59)
+            set(Calendar.SECOND, 59)
+            set(Calendar.MILLISECOND, 999)
+        }
+
+        val startOfDayTimestamp = Timestamp(calendarStart.time)
+        val endOfDayTimestamp = Timestamp(calendarEnd.time)
+
         try {
             val result = db.collectionGroup("reservations")
                 .whereEqualTo("tipo", ReservType.entries[type].name)
+                .whereLessThan("inicio", endOfDayTimestamp)
+                .whereGreaterThan("inicio", startOfDayTimestamp)
                 .orderBy("inicio", Query.Direction.ASCENDING)
-                .get().await()
+                .get()
+                .await()
 
             val reservationsDeferred = result.documents.mapNotNull { doc ->
                 val reservation = doc.toObject(Reservation::class.java)?.copy(id = doc.id)
@@ -87,7 +129,6 @@ class ReservationServiceImpl @Inject constructor(
             }
             reservationsDeferred.awaitAll()
         } catch (e: Exception) {
-            Log.e("Firestore", "Error al obtener las reservas de ${ReservType.entries[type]}", e)
             emptyList()
         }
     }

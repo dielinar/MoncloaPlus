@@ -77,15 +77,10 @@ fun SignUpScreen(
         Image(
             painter = painterResource(id = imageRes),
             contentDescription = "Moncloa logo",
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(24.dp, 4.dp)
-                .size(180.dp, 180.dp)
+            modifier = modifier.size(180.dp, 180.dp)
         )
 
-        Spacer(modifier = Modifier
-            .fillMaxWidth()
-            .padding(12.dp))
+        Spacer(modifier = Modifier.padding(8.dp))
 
         OutlinedTextField(
             singleLine = true,

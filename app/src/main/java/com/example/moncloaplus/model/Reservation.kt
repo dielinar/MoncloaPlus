@@ -21,10 +21,6 @@ data class Reservation (
     // Hay solapamiento
 }
 
-db.collection("reservas")
-    .whereGreaterThan("final", Timestamp.now()) // Reservas activas
-    .get()
-
      */
 
 }

@@ -25,15 +25,4 @@ fun GymScreen(
     accViewModel: AccountCenterViewModel = hiltViewModel()
 ) {
 
-    val reservations by resViewModel.reservationsOfType.collectAsState()
-    val currentUser by accViewModel.user.collectAsState()
-
-    LaunchedEffect(Unit) {
-        resViewModel.fetchAllReservationsOfType(GYM_INDEX)
-    }
-
-    Column(modifier = Modifier.fillMaxSize())
-    {
-    }
-
 }

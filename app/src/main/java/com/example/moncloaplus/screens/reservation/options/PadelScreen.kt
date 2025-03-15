@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -17,6 +18,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.moncloaplus.screens.account_center.AccountCenterViewModel
@@ -31,14 +34,15 @@ fun PadelScreen(
     resViewModel: ReservationViewModel = hiltViewModel(),
     accViewModel: AccountCenterViewModel = hiltViewModel()
 ) {
-    val reservations by resViewModel.reservationsOfType.collectAsState()
+    val reservationsOnDay by resViewModel.reservationsOnDay.collectAsState()
     val userReservations by resViewModel.userReservations.collectAsState()
     val currentUser by accViewModel.user.collectAsState()
+    val currentDate by resViewModel.currentDate.collectAsState()
 
     var selected by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        resViewModel.fetchAllReservationsOfType(PADEL_INDEX)
+        resViewModel.fetchReservationsOnDay(PADEL_INDEX, currentDate)
     }
 
     Scaffold(
@@ -51,25 +55,38 @@ fun PadelScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 24.dp, end = 24.dp, top = 16.dp),
+                    .padding(start = 24.dp, end = 24.dp, bottom = 16.dp, top = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                DatePickerFieldToModal(resViewModel)
+                DatePickerFieldToModal(
+                    PADEL_INDEX,
+                    currentDate,
+                    onDateSelected = { type, selectedDate ->
+                        resViewModel.updateCurrentDate(type, selectedDate)
+                    }
+                )
                 Spacer(modifier = Modifier.weight(1f))
                 MyReservationsButton(
                     selected = selected,
                     onSelectedChange = { newValue ->
                         selected = newValue
                         if (newValue) {
-                            resViewModel.fetchUserReservations(PADEL_INDEX)
+                            resViewModel.fetchUserReservations(PADEL_INDEX, currentDate)
                         }
                     }
                 )
             }
 
-            val reservationsToShow = if (selected) userReservations[PADEL_INDEX] else reservations[PADEL_INDEX]
-            reservationsToShow?.let {
-                ReservationList(it, currentUser, onDelete = { resId -> resViewModel.deleteReservation(resId) })
+            val reservationsToShow = if (selected) userReservations[PADEL_INDEX] else reservationsOnDay
+            if (reservationsToShow.isNullOrEmpty()) {
+                Text(
+                    text = if (selected) "No tienes reservas para este día." else "Sin reservas para este día.",
+                    modifier = Modifier.fillMaxSize().padding(16.dp),
+                    textAlign = TextAlign.Center,
+                    fontStyle = FontStyle.Italic
+                )
+            } else {
+                ReservationList(reservationsToShow, currentUser, onDelete = { resId -> resViewModel.deleteReservation(resId) })
             }
 
         }

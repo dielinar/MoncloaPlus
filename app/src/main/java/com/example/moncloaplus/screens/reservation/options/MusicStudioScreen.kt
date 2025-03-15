@@ -26,15 +26,4 @@ fun MusicStudioScreen(
     accViewModel: AccountCenterViewModel = hiltViewModel()
 ) {
 
-    val reservations by resViewModel.reservationsOfType.collectAsState()
-    val currentUser by accViewModel.user.collectAsState()
-
-    LaunchedEffect(Unit) {
-        resViewModel.fetchAllReservationsOfType(MUSIC_STUDIO_INDEX)
-    }
-
-    Column(modifier = Modifier.fillMaxSize())
-    {
-    }
-
 }

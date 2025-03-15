@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,6 +18,7 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -71,15 +73,10 @@ fun SignInScreen(
         Image(
             painter = painterResource(id = imageRes),
             contentDescription = "Moncloa logo",
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(24.dp, 4.dp)
-                .size(180.dp, 180.dp)
+            modifier = modifier.size(180.dp, 180.dp)
         )
 
-        Spacer(modifier = Modifier
-            .fillMaxWidth()
-            .padding(12.dp))
+        Spacer(modifier = Modifier.padding(8.dp))
 
         OutlinedTextField(
             singleLine = true,
@@ -134,26 +131,44 @@ fun SignInScreen(
             )
         }
 
-        Spacer(modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp))
+        Spacer(modifier = Modifier.padding(8.dp))
 
-        Text(text = stringResource(R.string.o), fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("¿No tienes cuenta?")
+            TextButton(onClick = { openScreen(SIGN_UP_SCREEN) }) {
+                Text(text = stringResource(R.string.registrate), fontSize = 16.sp, color = MaterialTheme.colorScheme.tertiary)
+            }
+        }
 
-        Spacer(modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp))
+        LabeledDivider(stringResource(R.string.o))
+
+        Spacer(modifier = Modifier.padding(8.dp))
 
         AuthenticationButton(buttonText = R.string.sign_in_with_google) { credential ->
             viewModel.onSignInWithGoogle(credential, openAndPopUp)
         }
 
-        Spacer(modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp))
-
-        TextButton(onClick = { openScreen(SIGN_UP_SCREEN) }) {
-            Text(text = stringResource(R.string.crear_cuenta), fontSize = 16.sp, color = MaterialTheme.colorScheme.primary)
-        }
     }
 }
+
+@Composable
+fun LabeledDivider(text: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth().padding(8.dp)
+    ) {
+        HorizontalDivider(modifier = Modifier.weight(1f), thickness = 2.dp)
+        Text(
+            text = text,
+            modifier = Modifier.padding(horizontal = 8.dp),
+            fontSize = 16.sp,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        HorizontalDivider(modifier = Modifier.weight(1f), thickness = 2.dp)
+    }
+}
+

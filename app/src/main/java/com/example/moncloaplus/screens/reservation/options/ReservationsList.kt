@@ -1,18 +1,21 @@
 package com.example.moncloaplus.screens.reservation.options
 
+import android.widget.Space
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
@@ -33,7 +36,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -43,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import com.example.moncloaplus.R
 import com.example.moncloaplus.model.Reservation
 import com.example.moncloaplus.model.User
+import com.example.moncloaplus.screens.reservation.RESERVATION_ICONS
 import com.example.moncloaplus.screens.reservation.ReservationColors
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -70,32 +73,43 @@ fun ReservationCard(
     currentUser: User,
     onDelete: (String) -> Unit
 ) {
-
     val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
 
     val isCurrentUser = reservation.owner?.id == currentUser.id
+    val isPastReservation = reservation.final.toDate().time < System.currentTimeMillis()
 
-    val containerColor = if (isCurrentUser) {
-        MaterialTheme.colorScheme.tertiaryContainer
-    } else {
-        MaterialTheme.colorScheme.secondaryContainer
-    }
+    val containerColor = if (isPastReservation) ReservationColors.pastContainer()
+    else
+        if (isCurrentUser) MaterialTheme.colorScheme.tertiaryContainer
+        else MaterialTheme.colorScheme.primaryContainer
 
-    val dividerColor = if (isCurrentUser) {
-        MaterialTheme.colorScheme.onTertiaryContainer
-    } else {
-        MaterialTheme.colorScheme.onSecondaryContainer
-    }
+    val contentColor = if (isPastReservation) ReservationColors.pastContent()
+    else
+        if (isCurrentUser) MaterialTheme.colorScheme.onTertiaryContainer
+        else MaterialTheme.colorScheme.onPrimaryContainer
+
+    val dividerColor = if (isPastReservation) ReservationColors.pastContent()
+    else
+        if (isCurrentUser) MaterialTheme.colorScheme.onTertiaryContainer
+        else MaterialTheme.colorScheme.onPrimaryContainer
+
+    val elevation = if (isPastReservation) 0.dp else 4.dp
+
+    val durationText = getDurationText(
+        reservation.inicio.toDate().time,
+        reservation.final.toDate().time
+    )
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = elevation),
         shape = MaterialTheme.shapes.medium,
         colors = CardDefaults.cardColors(
             containerColor = containerColor,
+            contentColor = contentColor
         )
     ) {
-        Box(modifier = Modifier.fillMaxWidth()) {
+        Box(modifier = Modifier.fillMaxWidth().background(containerColor)) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Row(
                     modifier = Modifier
@@ -104,8 +118,17 @@ fun ReservationCard(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    TimeCard(timeFormat.format(reservation.inicio.toDate()), ReservationColors.greenContent, ReservationColors.greenContainer)
-                    TimeCard(timeFormat.format(reservation.final.toDate()), ReservationColors.redContent, ReservationColors.redContainer)
+                    TimeCard(
+                        isPastReservation,
+                        true,
+                        timeFormat.format(reservation.inicio.toDate())
+                    )
+                    TimeCard(
+                        isPastReservation,
+                        false,
+                        timeFormat.format(reservation.final.toDate())
+                    )
+                    Text(durationText, style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic)
                 }
                 Text(
                     text = "${reservation.owner?.firstName} ${reservation.owner?.firstSurname} ${reservation.owner?.secondSurname}",
@@ -119,7 +142,7 @@ fun ReservationCard(
                 }
             }
 
-            if (isCurrentUser)
+            if (!isPastReservation && isCurrentUser)
                 MenuOptions(
                     modifier = Modifier.align(Alignment.TopEnd),
                     reservationId = reservation.id,
@@ -129,26 +152,55 @@ fun ReservationCard(
         }
     }
 
-
 }
 
 @Composable
-fun TimeCard(text: String, contentColor: Color, containerColor: Color) {
+fun TimeCard(
+    isPastReservation: Boolean,
+    isStartTime: Boolean,
+    text: String
+) {
+    val containerColor = if (isPastReservation) ReservationColors.pastContainer()
+    else
+        if (isStartTime) ReservationColors.greenContainer
+        else ReservationColors.redContainer
+
+    val contentColor = if (isPastReservation) ReservationColors.pastContent()
+    else
+        if (isStartTime) ReservationColors.greenContent
+        else ReservationColors.redContent
+
+    val borderWidth = if (isPastReservation) 1.dp else 2.dp
+
     Card(
         colors = CardDefaults.cardColors(
             contentColor = contentColor,
-            containerColor = containerColor
+            containerColor = containerColor,
         ),
-        border = BorderStroke(2.dp, contentColor)
+        border = BorderStroke(borderWidth, contentColor)
     ) {
         Row(modifier = Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center)
         {
             Text(
                 text = text,
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
         }
+    }
+}
+
+@Composable
+fun getDurationText(startTime: Long, endTime: Long): String {
+    val durationMillis = endTime - startTime
+    val totalMinutes = (durationMillis / (1000 * 60)).toInt()
+    val hours = totalMinutes / 60
+    val minutes = totalMinutes % 60
+
+    return when {
+        hours > 0 && minutes > 0 -> "$hours hora${if (hours > 1) "s" else ""} y $minutes minuto${if (minutes > 1) "s" else ""}"
+        hours > 0 -> "$hours hora${if (hours > 1) "s" else ""}"
+        else -> "$minutes minuto${if (minutes > 1) "s" else ""}"
     }
 }
 

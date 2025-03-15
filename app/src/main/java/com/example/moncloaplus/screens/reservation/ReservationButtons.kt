@@ -389,9 +389,10 @@ fun MyReservationsButton(
 
 @Composable
 fun DatePickerFieldToModal(
-    viewModel: ReservationViewModel
+    type: Int,
+    currentDate: Long,
+    onDateSelected: (Int, Long) -> Unit,
 ) {
-    val currentDate by viewModel.currentDate.collectAsState()
     var showModal by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
 
@@ -418,7 +419,7 @@ fun DatePickerFieldToModal(
         DatePickerModal(
             currentDate,
             onDateSelected = { selectedDate ->
-                viewModel.updateCurrentDate(selectedDate)
+                onDateSelected(type, selectedDate)
                 showModal = false
                 focusManager.clearFocus()
             },

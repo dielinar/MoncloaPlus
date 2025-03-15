@@ -284,7 +284,6 @@ fun MealScheduleRow(
     selectedMeals: Map<String, String>,
     onMealSelected: (String, String) -> Unit
 ) {
-
     val today = remember { java.time.LocalDate.now() }
     val formatter = remember { java.time.format.DateTimeFormatter.ofPattern(DATE_PATTERN) }
     val parsedDate = date?.let { java.time.LocalDate.parse(it, formatter) }

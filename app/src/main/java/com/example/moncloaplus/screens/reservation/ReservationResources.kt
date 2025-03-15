@@ -27,8 +27,18 @@ fun Long.toFormattedDate(): String {
 }
 
 fun convertMillisToDate(millis: Long): String {
-    val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-    return formatter.format(Date(millis))
+    val calendar = Calendar.getInstance()
+    val today = Calendar.getInstance()
+    calendar.timeInMillis = millis
+
+    return if (calendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+        calendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)
+    ) {
+        "Hoy"
+    } else {
+        val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        formatter.format(calendar.time)
+    }
 }
 
 fun formatHourMinute(hour: Int, minute: Int): String {
