@@ -51,12 +51,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -395,25 +398,50 @@ fun DatePickerFieldToModal(
 ) {
     var showModal by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
+    val oneDayInMillis = 86400000L
 
-    OutlinedTextField(
-        value = convertMillisToDate(currentDate),
-        onValueChange = {},
-        trailingIcon = {
-            Icon(Icons.Default.DateRange, contentDescription = null)
-        },
-        modifier = Modifier
-            .width(160.dp)
-            .pointerInput(currentDate) {
-                awaitEachGesture {
-                    awaitFirstDown(pass = PointerEventPass.Initial)
-                    val upEvent = waitForUpOrCancellation(pass = PointerEventPass.Initial)
-                    if (upEvent != null) {
-                        showModal = true
+    Row(
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(
+            onClick = {
+                onDateSelected(type, currentDate - oneDayInMillis)
+                focusManager.clearFocus()
+            }
+        ) {
+            Icon(painterResource(R.drawable.keyboard_double_arrow_left_24px), null)
+        }
+        OutlinedTextField(
+            value = convertMillisToDate(currentDate),
+            onValueChange = {},
+            trailingIcon = {
+                Icon(Icons.Default.DateRange, contentDescription = null)
+            },
+            textStyle = TextStyle(textAlign = TextAlign.Center, fontWeight = FontWeight.Bold, fontSize = 16.sp),
+            modifier = Modifier
+                .width(155.dp)
+                .height(50.dp)
+                .scale(0.9f, 0.9f)
+                .pointerInput(currentDate) {
+                    awaitEachGesture {
+                        awaitFirstDown(pass = PointerEventPass.Initial)
+                        val upEvent = waitForUpOrCancellation(pass = PointerEventPass.Initial)
+                        if (upEvent != null) {
+                            showModal = true
+                        }
                     }
                 }
+        )
+        IconButton(
+            onClick = {
+                onDateSelected(type, currentDate + oneDayInMillis)
+                focusManager.clearFocus()
             }
-    )
+        ) {
+            Icon(painterResource(R.drawable.keyboard_double_arrow_right_24px), null)
+        }
+    }
 
     if (showModal) {
         DatePickerModal(

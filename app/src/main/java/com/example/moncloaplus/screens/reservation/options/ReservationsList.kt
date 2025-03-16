@@ -1,6 +1,5 @@
 package com.example.moncloaplus.screens.reservation.options
 
-import android.widget.Space
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -8,9 +7,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -36,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -58,7 +58,7 @@ fun ReservationList(
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(24.dp),
+        contentPadding = PaddingValues(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 90.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(reservationsList) { reservation ->
@@ -93,8 +93,6 @@ fun ReservationCard(
         if (isCurrentUser) MaterialTheme.colorScheme.onTertiaryContainer
         else MaterialTheme.colorScheme.onPrimaryContainer
 
-    val elevation = if (isPastReservation) 0.dp else 4.dp
-
     val durationText = getDurationText(
         reservation.inicio.toDate().time,
         reservation.final.toDate().time
@@ -102,8 +100,8 @@ fun ReservationCard(
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = elevation),
-        shape = MaterialTheme.shapes.medium,
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = MaterialTheme.shapes.extraSmall,
         colors = CardDefaults.cardColors(
             containerColor = containerColor,
             contentColor = contentColor
@@ -149,6 +147,17 @@ fun ReservationCard(
                     onDelete = onDelete
                 )
 
+
+            Icon(
+                painter = painterResource(RESERVATION_ICONS[reservation.tipo.ordinal]),
+                contentDescription = "Reservation icon",
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .offset(x = 15.dp, y = 15.dp)
+                    .size(80.dp)
+                    .alpha(0.2f),
+                tint = contentColor
+            )
         }
     }
 
@@ -170,20 +179,20 @@ fun TimeCard(
         if (isStartTime) ReservationColors.greenContent
         else ReservationColors.redContent
 
-    val borderWidth = if (isPastReservation) 1.dp else 2.dp
-
     Card(
         colors = CardDefaults.cardColors(
             contentColor = contentColor,
             containerColor = containerColor,
         ),
-        border = BorderStroke(borderWidth, contentColor)
-    ) {
+        border = BorderStroke(1.dp, contentColor),
+        shape = MaterialTheme.shapes.extraSmall
+        ) {
         Row(modifier = Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center)
         {
             Text(
                 text = text,
-                style = MaterialTheme.typography.titleMedium,
+                style = if (isStartTime) MaterialTheme.typography.titleMedium
+                        else MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold
             )
         }

@@ -41,6 +41,12 @@ fun convertMillisToDate(millis: Long): String {
     }
 }
 
+fun convertMillisToDayMonth(millis: Long): String {
+    val date = Date(millis)
+    val format = SimpleDateFormat("dd/MM", Locale.getDefault())
+    return format.format(date)
+}
+
 fun formatHourMinute(hour: Int, minute: Int): String {
     return String.format(Locale.getDefault(), "%02d:%02d", hour, minute)
 }

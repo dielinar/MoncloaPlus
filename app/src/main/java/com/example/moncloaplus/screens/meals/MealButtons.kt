@@ -2,9 +2,7 @@ package com.example.moncloaplus.screens.meals
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,23 +18,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.FilledTonalIconToggleButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SegmentedButton
@@ -75,18 +66,16 @@ fun SingleChoiceSegmentedButton(
     var selectedOption by remember { mutableStateOf(options[1]) }
 
     SingleChoiceSegmentedButtonRow (
-        modifier = Modifier.graphicsLayer(scaleX = 0.8f, scaleY = 0.8f)
+        modifier = Modifier.graphicsLayer(scaleX = 0.7f, scaleY = 0.7f)
     ){
         options.forEachIndexed { index, label ->
-            val isHoy = label == options[1]
             val isSelected = selectedOption == label
-            val borderWidth = if (isSelected && !isHoy) 2.dp else SegmentedButtonDefaults.BorderWidth
-            val borderColor = if (isSelected && !isHoy) MaterialTheme.colorScheme.primary else SegmentedButtonDefaults.colors().inactiveBorderColor
 
             SegmentedButton(
                 shape = SegmentedButtonDefaults.itemShape(
                     index = index,
-                    count = options.size
+                    count = options.size,
+                    baseShape = MaterialTheme.shapes.small
                 ),
                 onClick = {
                     if (!isTemplateApplied) {
@@ -97,12 +86,7 @@ fun SingleChoiceSegmentedButton(
                 selected = isSelected,
                 label = { Text(label) },
                 icon = {},
-                enabled = !isTemplateApplied,
-                colors = SegmentedButtonDefaults.colors(
-                    activeContainerColor = if (isHoy) MaterialTheme.colorScheme.primary.copy(0.2f) else Color.Transparent,
-                    activeContentColor = if (isHoy) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.primary,
-                ),
-                border = BorderStroke(borderWidth, borderColor)
+                enabled = !isTemplateApplied
             )
         }
     }
@@ -193,6 +177,7 @@ fun SaveMealsButton(buttonText: String, onSave: () -> Unit, enabled: Boolean) {
             contentColor = MaterialTheme.colorScheme.onPrimary
         ),
         enabled = enabled,
+        shape = MaterialTheme.shapes.small
     ) {
         Icon(painter = painterResource(R.drawable.save_24px), null, Modifier.padding(end = 8.dp).size(18.dp))
         Text(text = buttonText)
@@ -209,7 +194,6 @@ fun MealDropdown(
     enabled: Boolean = true,
     onSelectionChange: (String) -> Unit
 ) {
-
     var expanded by remember { mutableStateOf(false) }
     val selectedOption = selected ?: "-"
 

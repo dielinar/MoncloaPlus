@@ -1,10 +1,11 @@
 package com.example.moncloaplus.screens.reservation.options
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Scaffold
@@ -51,12 +52,14 @@ fun PadelScreen(
         },
         floatingActionButtonPosition = FabPosition.End
     ) { innerPadding ->
-        Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 24.dp, end = 24.dp, bottom = 16.dp, top = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            Box(
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                contentAlignment = Alignment.Center
             ) {
                 DatePickerFieldToModal(
                     PADEL_INDEX,
@@ -65,7 +68,14 @@ fun PadelScreen(
                         resViewModel.updateCurrentDate(type, selectedDate)
                     }
                 )
-                Spacer(modifier = Modifier.weight(1f))
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(end = 24.dp),
+                contentAlignment = Alignment.CenterEnd
+            ) {
                 MyReservationsButton(
                     selected = selected,
                     onSelectedChange = { newValue ->

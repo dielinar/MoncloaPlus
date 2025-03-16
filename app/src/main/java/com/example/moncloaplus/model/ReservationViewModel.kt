@@ -46,6 +46,7 @@ class ReservationViewModel @Inject constructor(
     fun updateNewDate(newDate: Long) { _newDate.value = newDate }
     fun updateCurrentDate(type: Int, newCurrentDay: Long) {
         _currentDate.value = newCurrentDay
+        _newDate.value = newCurrentDay
         fetchReservationsOnDay(type, newCurrentDay)
         fetchUserReservations(type, newCurrentDay)
     }
