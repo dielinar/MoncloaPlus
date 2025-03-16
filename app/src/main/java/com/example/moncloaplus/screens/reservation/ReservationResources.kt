@@ -20,6 +20,15 @@ val PIANO_ICON = R.drawable.piano_24px
 
 val RESERVATION_ICONS: List<Int> = listOf(PADEL_ICON, GYM_ICON, MUSIC_STUDIO_ICON, PIANO_ICON)
 
+fun normalizeDate(dateMillis: Long): Long {
+    val calendar = Calendar.getInstance().apply { timeInMillis = dateMillis }
+    calendar.set(Calendar.HOUR_OF_DAY, 0)
+    calendar.set(Calendar.MINUTE, 0)
+    calendar.set(Calendar.SECOND, 0)
+    calendar.set(Calendar.MILLISECOND, 0)
+    return calendar.timeInMillis
+}
+
 fun Long.toFormattedDate(): String {
     val calendar = Calendar.getInstance().apply { timeInMillis = this@toFormattedDate }
     val sdf = SimpleDateFormat("EEE, dd MMM yyyy", Locale("es", "ES"))

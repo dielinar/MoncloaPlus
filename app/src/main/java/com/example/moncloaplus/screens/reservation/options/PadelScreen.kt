@@ -29,13 +29,14 @@ import com.example.moncloaplus.screens.reservation.DatePickerFieldToModal
 import com.example.moncloaplus.screens.reservation.MyReservationsButton
 import com.example.moncloaplus.screens.reservation.NewReservationButton
 import com.example.moncloaplus.screens.reservation.PADEL_INDEX
+import com.example.moncloaplus.screens.reservation.normalizeDate
 
 @Composable
 fun PadelScreen(
     resViewModel: ReservationViewModel = hiltViewModel(),
     accViewModel: AccountCenterViewModel = hiltViewModel()
 ) {
-    val reservationsOnDay by resViewModel.reservationsOnDay.collectAsState()
+    val reservationsByDate by resViewModel.reservationsByDate.collectAsState()
     val userReservations by resViewModel.userReservations.collectAsState()
     val currentUser by accViewModel.user.collectAsState()
     val currentDate by resViewModel.currentDate.collectAsState()
@@ -43,7 +44,7 @@ fun PadelScreen(
     var selected by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        resViewModel.fetchReservationsOnDay(PADEL_INDEX, currentDate)
+        resViewModel.fetchReservationsByDate(PADEL_INDEX, currentDate)
     }
 
     Scaffold(
@@ -87,8 +88,13 @@ fun PadelScreen(
                 )
             }
 
-            val reservationsToShow = if (selected) userReservations[PADEL_INDEX] else reservationsOnDay
-            if (reservationsToShow.isNullOrEmpty()) {
+            val normalizedCurrentDate = normalizeDate(currentDate)
+            val reservationsToShow = if (selected) {
+                userReservations[PADEL_INDEX] ?: emptyList()
+            } else {
+                reservationsByDate[normalizedCurrentDate] ?: emptyList()
+            }
+            if (reservationsToShow.isEmpty()) {
                 Text(
                     text = if (selected) "No tienes reservas para este día." else "Sin reservas para este día.",
                     modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -96,7 +102,12 @@ fun PadelScreen(
                     fontStyle = FontStyle.Italic
                 )
             } else {
-                ReservationList(reservationsToShow, currentUser, onDelete = { resId -> resViewModel.deleteReservation(resId) })
+                ReservationList(
+                    resViewModel,
+                    reservationsToShow,
+                    currentUser,
+                    onDelete = { resId -> resViewModel.deleteReservation(resId) }
+                )
             }
 
         }

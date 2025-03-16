@@ -40,6 +40,31 @@ class ReservationServiceImpl @Inject constructor(
             .await()
     }
 
+    override suspend fun editReservation(reservation: Reservation) {
+        reservationsCollection.document(reservation.id)
+            .set(reservation)
+            .await()
+    }
+
+    override suspend fun getReservation(reservationId: String): Reservation? {
+        return try {
+            val doc = reservationsCollection.document(reservationId).get().await()
+            val reservation = doc.toObject(Reservation::class.java)?.copy(id = doc.id)
+
+            reservation?.let {
+                val userId = doc.reference.parent.parent?.id
+                if (userId != null) {
+                    val user = storageService.getUser(userId)
+                    it.owner = user
+                }
+            }
+            reservation
+        } catch(e: Exception) {
+            Log.e("Firestore", "Error al obtener la reserva", e)
+            null
+        }
+    }
+
     override suspend fun getUserReservations(type: Int, dateMillis: Long): List<Reservation> = coroutineScope {
         val calendarStart = Calendar.getInstance().apply {
             timeInMillis = dateMillis

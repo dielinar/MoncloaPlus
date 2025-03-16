@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -29,6 +30,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,7 +46,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.moncloaplus.R
 import com.example.moncloaplus.model.Reservation
+import com.example.moncloaplus.model.ReservationViewModel
 import com.example.moncloaplus.model.User
+import com.example.moncloaplus.screens.reservation.EditReservationDialog
 import com.example.moncloaplus.screens.reservation.RESERVATION_ICONS
 import com.example.moncloaplus.screens.reservation.ReservationColors
 import java.text.SimpleDateFormat
@@ -52,6 +56,7 @@ import java.util.Locale
 
 @Composable
 fun ReservationList(
+    viewModel: ReservationViewModel,
     reservationsList: List<Reservation>,
     currentUser: User,
     onDelete: (String) -> Unit
@@ -62,13 +67,14 @@ fun ReservationList(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(reservationsList) { reservation ->
-            ReservationCard(reservation, currentUser, onDelete)
+            ReservationCard(viewModel, reservation, currentUser, onDelete)
         }
     }
 }
 
 @Composable
 fun ReservationCard(
+    viewModel: ReservationViewModel,
     reservation: Reservation,
     currentUser: User,
     onDelete: (String) -> Unit
@@ -144,6 +150,7 @@ fun ReservationCard(
                 MenuOptions(
                     modifier = Modifier.align(Alignment.TopEnd),
                     reservationId = reservation.id,
+                    viewModel = viewModel,
                     onDelete = onDelete
                 )
 
@@ -229,10 +236,12 @@ fun NoteLabel(text: String) {
 fun MenuOptions(
     modifier: Modifier,
     reservationId: String,
+    viewModel: ReservationViewModel,
     onDelete: (String) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    var showDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var showEditDialog by remember { mutableStateOf(false) }
 
     Box(modifier = modifier) {
         IconButton(onClick = { expanded = !expanded }) {
@@ -246,7 +255,9 @@ fun MenuOptions(
                 text = { Text("Editar") },
                 leadingIcon = { Icon(Icons.Filled.Edit, contentDescription = "Editar") },
                 onClick = {
-                    /* Do something... */
+                    viewModel.loadReservationForEditing(reservationId)
+                    expanded = false
+                    showEditDialog = true
                 }
             )
             DropdownMenuItem(
@@ -254,15 +265,15 @@ fun MenuOptions(
                 leadingIcon = { Icon(painterResource(R.drawable.delete_24px), "Eliminar")},
                 onClick = {
                     expanded = false
-                    showDialog = true
+                    showDeleteDialog = true
                 }
             )
         }
     }
 
-    if (showDialog) {
+    if (showDeleteDialog) {
         AlertDialog(
-            onDismissRequest = { showDialog = false },
+            onDismissRequest = { showDeleteDialog = false },
             icon = { Icon(painterResource(R.drawable.delete_24px), null) },
             title = { Text("Eliminar reserva") },
             text = { Text("¿Estás seguro de eliminar tu reserva?") },
@@ -270,16 +281,67 @@ fun MenuOptions(
                 TextButton(
                     onClick = {
                         onDelete(reservationId)
-                        showDialog = false
+                        showDeleteDialog = false
                     }
                 ) { Text("Sí, eliminar") }
             },
             dismissButton = {
-                TextButton(onClick = { showDialog = false }) {
+                TextButton(onClick = { showDeleteDialog = false }) {
                     Text("Atrás")
                 }
             }
         )
+    }
+
+//    if (showEditDialog) {
+//        EditReservationDialog(
+//            viewModel = viewModel,
+//            onDismiss = {
+//                showEditDialog = false
+//                viewModel.resetValues()
+//            },
+//            onConfirm = {
+//                viewModel.editReservation()
+//                showEditDialog = false
+//            }
+//        )
+//    }
+    if (showEditDialog) {
+        val editingReservation by viewModel.editingReservation.collectAsState()
+
+        if (editingReservation == null) {
+            AlertDialog(
+                onDismissRequest = { /* Opcionalmente puedes permitir cancelar */ },
+                title = { Text("Cargando reserva") },
+                text = {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showEditDialog = false }) {
+                        Text("Cancelar")
+                    }
+                }
+            )
+        } else {
+            EditReservationDialog(
+                viewModel = viewModel,
+                onDismiss = {
+                    showEditDialog = false
+                    viewModel.resetValues()
+                },
+                onConfirm = {
+                    viewModel.editReservation()
+                    showEditDialog = false
+                }
+            )
+        }
     }
 
 }

@@ -57,6 +57,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -66,6 +67,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.moncloaplus.R
 import com.example.moncloaplus.model.ReservType
+import com.example.moncloaplus.model.Reservation
 import com.example.moncloaplus.model.ReservationViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -103,11 +105,18 @@ fun ReservationDialog(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text (
-                    modifier = Modifier.padding(bottom = 48.dp),
+                    modifier = Modifier.padding(bottom = 32.dp),
                     text = RESERVATION_NAMES[index],
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.tertiary
+                )
+                Text(
+                    modifier = Modifier.padding(bottom = 16.dp),
+                    text = "Nueva reserva",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    fontStyle = FontStyle.Italic,
                 )
                 HorizontalDivider(modifier = Modifier.padding(bottom = 6.dp), thickness = 2.dp)
 
@@ -223,6 +232,8 @@ fun NewReservationButton(
     type: Int,
     viewModel: ReservationViewModel
 ) {
+    val newDate by viewModel.newDate.collectAsState()
+
     var showDialog by remember { mutableStateOf(false) }
 
     FloatingActionButton(
@@ -235,7 +246,10 @@ fun NewReservationButton(
         ReservationDialog(
             type,
             viewModel,
-            onDismiss = { showDialog = false },
+            onDismiss = {
+                viewModel.resetValues()
+                showDialog = false
+            },
             onConfirm = {
                 viewModel.createReservation(ReservType.entries[type])
                 showDialog = false
@@ -455,6 +469,161 @@ fun DatePickerFieldToModal(
                 showModal = false
                 focusManager.clearFocus()
             }
+        )
+    }
+
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditReservationDialog(
+    viewModel: ReservationViewModel,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    var showDatePicker by remember { mutableStateOf(false) }
+    var showStartTimePicker by remember { mutableStateOf(false) }
+    var showEndTimePicker by remember { mutableStateOf(false) }
+
+    val editingReservation by viewModel.editingReservation.collectAsState()
+    val newDate by viewModel.newDate.collectAsState()
+    val startTime by viewModel.startTime.collectAsState()
+    val endTime by viewModel.endTime.collectAsState()
+    val note by viewModel.note.collectAsState()
+
+    Dialog(onDismissRequest = onDismiss) {
+        val focusManager = LocalFocusManager.current
+
+        Surface(
+            shape = MaterialTheme.shapes.extraLarge,
+            tonalElevation = 6.dp
+        ) {
+            Column (horizontalAlignment = Alignment.CenterHorizontally) {
+                Spacer(modifier = Modifier.height(36.dp))
+                Icon(
+                    painter = painterResource(RESERVATION_ICONS[editingReservation?.tipo?.ordinal!!]),
+                    tint = MaterialTheme.colorScheme.tertiary,
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text (
+                    modifier = Modifier.padding(bottom = 32.dp),
+                    text = RESERVATION_NAMES[editingReservation?.tipo?.ordinal!!],
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.tertiary
+                )
+                Text(
+                    modifier = Modifier.padding(bottom = 16.dp),
+                    text = "Editando reserva...",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    fontStyle = FontStyle.Italic,
+                )
+                HorizontalDivider(modifier = Modifier.padding(bottom = 6.dp), thickness = 2.dp)
+
+                Row (
+                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ){
+                    Text(
+                        "Selecciona día:",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    TextButton(onClick = {showDatePicker = true}) {
+                        Text(text = newDate.toFormattedDate(), fontSize = 16.sp)
+                    }
+                }
+                HorizontalDivider(modifier = Modifier.padding(top = 6.dp, bottom = 6.dp), thickness = 2.dp)
+
+                Row (
+                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ){
+                    Text(
+                        "Hora de inicio:",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    TextButton(onClick = {showStartTimePicker = true}) {
+                        Text(text = startTime.let { formatHourMinute(it.first, it.second) }, fontSize = 16.sp)
+                    }
+                }
+
+                Row (
+                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ){
+                    Text(
+                        "Hora de fin:",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    TextButton(onClick = {showEndTimePicker = true}) {
+                        Text(text = endTime.let { formatHourMinute(it.first, it.second) }, fontSize = 16.sp)
+                    }
+                }
+                HorizontalDivider(modifier = Modifier.padding(top = 6.dp), thickness = 2.dp)
+
+                OutlinedTextField(
+                    value = note,
+                    onValueChange = { viewModel.updateNote(it) },
+                    label = { Text("Nota", style = MaterialTheme.typography.labelMedium) },
+                    modifier = Modifier.fillMaxWidth().focusable(true).padding(top = 24.dp, start = 24.dp, end = 24.dp),
+                    maxLines = 3,
+                    singleLine = false,
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = { focusManager.clearFocus() }
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp, end = 24.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismiss) { Text("Cancelar", color = MaterialTheme.colorScheme.tertiary, fontSize = 16.sp) }
+                    TextButton(onClick = onConfirm) { Text("Guardar cambios", color = MaterialTheme.colorScheme.tertiary, fontSize = 16.sp) }
+                }
+            }
+        }
+    }
+
+    if (showDatePicker) {
+        DatePickerModal(
+            newDate,
+            onDateSelected = { selectedDate ->
+                viewModel.updateNewDate(selectedDate)
+                showDatePicker = false },
+            onDismiss = { showDatePicker = false}
+        )
+    }
+
+    if (showStartTimePicker) {
+        AdvancedTimePicker(
+            viewModel,
+            isStartTime = true,
+            onConfirm = { state ->
+                viewModel.updateStartTime(Pair(state.hour, state.minute))
+                showStartTimePicker = false },
+            onDismiss = { showStartTimePicker = false}
+        )
+    }
+
+    if (showEndTimePicker) {
+        AdvancedTimePicker(
+            viewModel,
+            isStartTime = false,
+            onConfirm = { state ->
+                viewModel.updateEndTime(Pair(state.hour, state.minute))
+                showEndTimePicker = false
+            },
+            onDismiss = { showEndTimePicker = false }
         )
     }
 
