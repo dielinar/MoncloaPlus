@@ -67,7 +67,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.moncloaplus.R
 import com.example.moncloaplus.model.ReservType
-import com.example.moncloaplus.model.Reservation
 import com.example.moncloaplus.model.ReservationViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -232,8 +231,6 @@ fun NewReservationButton(
     type: Int,
     viewModel: ReservationViewModel
 ) {
-    val newDate by viewModel.newDate.collectAsState()
-
     var showDialog by remember { mutableStateOf(false) }
 
     FloatingActionButton(

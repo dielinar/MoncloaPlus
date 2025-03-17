@@ -293,25 +293,12 @@ fun MenuOptions(
         )
     }
 
-//    if (showEditDialog) {
-//        EditReservationDialog(
-//            viewModel = viewModel,
-//            onDismiss = {
-//                showEditDialog = false
-//                viewModel.resetValues()
-//            },
-//            onConfirm = {
-//                viewModel.editReservation()
-//                showEditDialog = false
-//            }
-//        )
-//    }
     if (showEditDialog) {
         val editingReservation by viewModel.editingReservation.collectAsState()
 
         if (editingReservation == null) {
             AlertDialog(
-                onDismissRequest = { /* Opcionalmente puedes permitir cancelar */ },
+                onDismissRequest = {},
                 title = { Text("Cargando reserva") },
                 text = {
                     Box(
@@ -333,8 +320,8 @@ fun MenuOptions(
             EditReservationDialog(
                 viewModel = viewModel,
                 onDismiss = {
-                    showEditDialog = false
                     viewModel.resetValues()
+                    showEditDialog = false
                 },
                 onConfirm = {
                     viewModel.editReservation()

@@ -18,9 +18,7 @@ data class Reservation (
 
     /*
     if (reserva1.inicio < reserva2.final && reserva1.final > reserva2.inicio) {
-    // Hay solapamiento
-}
-
-     */
+        // Hay solapamiento
+    }*/
 
 }

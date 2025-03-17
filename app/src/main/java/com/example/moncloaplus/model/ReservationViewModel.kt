@@ -85,7 +85,7 @@ class ReservationViewModel @Inject constructor(
     }
 
     fun resetValues() {
-        updateNewDate(System.currentTimeMillis())
+        updateNewDate(_currentDate.value)
         updateStartTime(getDefaultStartTime())
         updateEndTime(getDefaultEndTime(_startTime.value))
         updateNote("")
@@ -156,6 +156,7 @@ class ReservationViewModel @Inject constructor(
                 ?.let { it1 -> fetchUserReservations(it.ordinal, it1.time) } }
             _editingReservation.value?.tipo?.let { _editingReservation.value?.inicio?.toDate()
                 ?.let { it1 -> fetchReservationsByDate(it.ordinal, it1.time) } }
+
             resetValues()
 
             _editingReservation.value = null
