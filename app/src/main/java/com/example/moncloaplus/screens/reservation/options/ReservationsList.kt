@@ -2,6 +2,7 @@ package com.example.moncloaplus.screens.reservation.options
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BadgeDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -38,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -80,24 +83,29 @@ fun ReservationCard(
     onDelete: (String) -> Unit
 ) {
     val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+    val now = System.currentTimeMillis()
 
     val isCurrentUser = reservation.owner?.id == currentUser.id
-    val isPastReservation = reservation.final.toDate().time < System.currentTimeMillis()
+    val isPastReservation = reservation.inicio.toDate().time <= now && now > reservation.final.toDate().time
+    val isCurrentReservation = reservation.inicio.toDate().time <= now && now <= reservation.final.toDate().time
 
-    val containerColor = if (isPastReservation) ReservationColors.pastContainer()
-    else
-        if (isCurrentUser) MaterialTheme.colorScheme.tertiaryContainer
-        else MaterialTheme.colorScheme.primaryContainer
+    val containerColor = when {
+        isPastReservation -> ReservationColors.pastContainer()
+        isCurrentUser -> MaterialTheme.colorScheme.tertiaryContainer
+        else -> MaterialTheme.colorScheme.primaryContainer
+    }
 
-    val contentColor = if (isPastReservation) ReservationColors.pastContent()
-    else
-        if (isCurrentUser) MaterialTheme.colorScheme.onTertiaryContainer
-        else MaterialTheme.colorScheme.onPrimaryContainer
+    val contentColor = when {
+        isPastReservation -> ReservationColors.pastContent()
+        isCurrentUser -> MaterialTheme.colorScheme.onTertiaryContainer
+        else -> MaterialTheme.colorScheme.onPrimaryContainer
+    }
 
-    val dividerColor = if (isPastReservation) ReservationColors.pastContent()
-    else
-        if (isCurrentUser) MaterialTheme.colorScheme.onTertiaryContainer
-        else MaterialTheme.colorScheme.onPrimaryContainer
+    val dividerColor = when {
+        isPastReservation -> ReservationColors.pastContent()
+        isCurrentUser -> MaterialTheme.colorScheme.onTertiaryContainer
+        else -> MaterialTheme.colorScheme.onPrimaryContainer
+    }
 
     val durationText = getDurationText(
         reservation.inicio.toDate().time,
@@ -146,14 +154,19 @@ fun ReservationCard(
                 }
             }
 
-            if (!isPastReservation && isCurrentUser)
+            if (!isPastReservation && !isCurrentReservation && isCurrentUser)
                 MenuOptions(
                     modifier = Modifier.align(Alignment.TopEnd),
                     reservationId = reservation.id,
                     viewModel = viewModel,
                     onDelete = onDelete
                 )
-
+            if (isCurrentReservation) {
+                Row(modifier = Modifier.padding(12.dp).align(Alignment.TopEnd), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(painterResource(R.drawable.sensors_24px), null, tint = BadgeDefaults.containerColor, modifier = Modifier.size(28.dp).padding(end = 6.dp))
+                    Text("en curso", color = BadgeDefaults.containerColor, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, fontStyle = FontStyle.Italic)
+                }
+            }
 
             Icon(
                 painter = painterResource(RESERVATION_ICONS[reservation.tipo.ordinal]),
@@ -162,7 +175,7 @@ fun ReservationCard(
                     .align(Alignment.BottomEnd)
                     .offset(x = 15.dp, y = 15.dp)
                     .size(80.dp)
-                    .alpha(0.2f),
+                    .alpha(0.15f),
                 tint = contentColor
             )
         }
@@ -192,7 +205,7 @@ fun TimeCard(
             containerColor = containerColor,
         ),
         border = BorderStroke(1.dp, contentColor),
-        shape = MaterialTheme.shapes.extraSmall
+        shape = MaterialTheme.shapes.small
         ) {
         Row(modifier = Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center)
         {

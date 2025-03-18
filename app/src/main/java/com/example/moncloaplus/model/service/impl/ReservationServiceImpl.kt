@@ -29,9 +29,8 @@ class ReservationServiceImpl @Inject constructor(
         get() = userId.let { usersCollection.document(it).collection("reservations") }
 
     override suspend fun createReservation(reservation: Reservation) {
-        reservationsCollection
-            .add(reservation)
-            .await()
+        val docRef = reservationsCollection.add(reservation).await()
+        reservation.id = docRef.id
     }
 
     override suspend fun deleteReservation(reservationId: String) {

@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
@@ -15,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -28,12 +31,20 @@ import com.example.moncloaplus.screens.reservation.options.GymScreen
 import com.example.moncloaplus.screens.reservation.options.MusicStudioScreen
 import com.example.moncloaplus.screens.reservation.options.PadelScreen
 import com.example.moncloaplus.screens.reservation.options.PianoScreen
+import kotlinx.coroutines.delay
 
 @Composable
 fun ReservationScreen(
     navController: NavHostController,
     resViewModel: ReservationViewModel = hiltViewModel()
 ) {
+    val currentTime by produceState(initialValue = System.currentTimeMillis()) {
+        while (true) {
+            value = System.currentTimeMillis()
+            delay(60000L)
+        }
+    }
+
     val currentRoute by navController.currentBackStackEntryFlow
         .collectAsState(initial = navController.currentBackStackEntry)
 
@@ -41,8 +52,12 @@ fun ReservationScreen(
         bottomBar = {
             NavigationBar {
                 RESERVATION_NAMES.forEachIndexed { index, item ->
+                    val hasCurrentReservation = resViewModel.hasCurrentReservationForType(index, currentTime)
                     NavigationBarItem(
-                        icon = { Icon(painter = painterResource(RESERVATION_ICONS[index]),null) },
+                        icon = {
+                            BadgedBox(badge = { if (hasCurrentReservation) { Badge() } }) {
+                                Icon(painter = painterResource(RESERVATION_ICONS[index]),null) }
+                        },
                         label = { Text(text = item) },
                         selected = currentRoute?.destination?.route == RESERVATION_ROUTES[index],
                         onClick = { navController.navigate(RESERVATION_ROUTES[index]) }

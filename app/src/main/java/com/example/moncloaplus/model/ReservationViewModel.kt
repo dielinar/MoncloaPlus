@@ -47,6 +47,14 @@ class ReservationViewModel @Inject constructor(
     private val _editingReservation = MutableStateFlow<Reservation?>(null)
     val editingReservation = _editingReservation.asStateFlow()
 
+    init {
+        val today = normalizeDate(System.currentTimeMillis())
+
+        ReservType.entries.forEach { type ->
+            fetchReservationsByDate(type.ordinal, today)
+        }
+    }
+
     fun updateNewDate(newDate: Long) { _newDate.value = newDate }
     fun updateCurrentDate(type: Int, newCurrentDay: Long) {
         _currentDate.value = newCurrentDay
@@ -163,6 +171,62 @@ class ReservationViewModel @Inject constructor(
         }
     }
 
+    fun isReservationOverlap(): Boolean {
+        val normalizedDate = normalizeDate(_newDate.value)
+        val reservationsToday = _reservationsByDate.value[normalizedDate] ?: emptyList()
+        val newStart = getStartTimestamp()
+        val newEnd = getEndTimestamp()
+
+        val editingReservation = _editingReservation.value
+
+        val filteredReservations = if (editingReservation != null) {
+            reservationsToday.filter { it.id != editingReservation.id }
+        } else {
+            reservationsToday
+        }
+
+        return filteredReservations.any { existing ->
+            newStart < existing.final && newEnd > existing.inicio
+        }
+    }
+
+    fun getValidationError(): String? {
+        val startTimestamp = getStartTimestamp()
+        val endTimestamp = getEndTimestamp()
+        val now = Timestamp.now()
+
+        // La hora de inicio debe ser estrictamente mayor que la actual.
+        if (!startTimestamp.toDate().after(now.toDate())) {
+            return "La hora de inicio debe ser posterior a la actual."
+        }
+
+        // Hora de fin mayor que hora de inicio
+        if (!endTimestamp.toDate().after(startTimestamp.toDate())) {
+            return "La hora final debe ser mayor que la de inicio."
+        }
+
+        // La reserva no puede extenderse a otro día
+        val startCalendar = Calendar.getInstance().apply { time = startTimestamp.toDate() }
+        val endCalendar = Calendar.getInstance().apply { time = endTimestamp.toDate() }
+        if (startCalendar.get(Calendar.YEAR) != endCalendar.get(Calendar.YEAR) ||
+            startCalendar.get(Calendar.MONTH) != endCalendar.get(Calendar.MONTH) ||
+            startCalendar.get(Calendar.DAY_OF_MONTH) != endCalendar.get(Calendar.DAY_OF_MONTH)
+            ) {
+            return "La reserva no puede terminar en otro día."
+        }
+        return null
+    }
+
+    fun hasCurrentReservationForType(type: Int, currentTime: Long): Boolean {
+        val todayKey = normalizeDate(currentTime)
+        val reservationsForToday = _reservationsByDate.value[todayKey] ?: emptyList()
+        return reservationsForToday.any { reservation ->
+            reservation.tipo.ordinal == type &&
+                    reservation.inicio.toDate().time <= currentTime &&
+                    reservation.final.toDate().time >= currentTime
+        }
+    }
+
     private fun addToUserReservations(reservation: Reservation) {
         val key = reservation.tipo.ordinal
         val currentList = _userReservations.value[key] ?: emptyList()
@@ -205,6 +269,8 @@ class ReservationViewModel @Inject constructor(
             timeInMillis = date
             set(Calendar.HOUR_OF_DAY, hour)
             set(Calendar.MINUTE, minute)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
         }
         return Timestamp(calendar.time)
     }
@@ -217,6 +283,8 @@ class ReservationViewModel @Inject constructor(
             timeInMillis = date
             set(Calendar.HOUR_OF_DAY, hour)
             set(Calendar.MINUTE, minute)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
 
             if (hour == 0 && minute == 0) {
                 add(Calendar.DAY_OF_MONTH, 1)

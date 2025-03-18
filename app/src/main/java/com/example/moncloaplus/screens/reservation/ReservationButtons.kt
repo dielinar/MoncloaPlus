@@ -1,5 +1,6 @@
 package com.example.moncloaplus.screens.reservation
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -86,6 +87,13 @@ fun ReservationDialog(
     val endTime by viewModel.endTime.collectAsState()
     val note by viewModel.note.collectAsState()
 
+    val overlapError by remember(newDate, startTime, endTime) {
+        derivedStateOf { viewModel.isReservationOverlap() }
+    }
+    val validationError by remember(newDate, startTime, endTime) {
+        derivedStateOf { viewModel.getValidationError() }
+    }
+
     Dialog(onDismissRequest = onDismiss) {
         val focusManager = LocalFocusManager.current
 
@@ -93,8 +101,7 @@ fun ReservationDialog(
             shape = MaterialTheme.shapes.extraLarge,
             tonalElevation = 6.dp
         ) {
-            Column (horizontalAlignment = Alignment.CenterHorizontally)
-            {
+            Column (horizontalAlignment = Alignment.CenterHorizontally) {
                 Spacer(modifier = Modifier.height(36.dp))
                 Icon(
                     painter = painterResource(RESERVATION_ICONS[index]),
@@ -128,8 +135,7 @@ fun ReservationDialog(
                         "Selecciona día:",
                         style = MaterialTheme.typography.bodyLarge
                     )
-                    TextButton(onClick = {showDatePicker = true})
-                    {
+                    TextButton(onClick = {showDatePicker = true}) {
                         Text(text = newDate.toFormattedDate(), fontSize = 16.sp)
                     }
                 }
@@ -145,7 +151,11 @@ fun ReservationDialog(
                         style = MaterialTheme.typography.bodyLarge
                     )
                     TextButton(onClick = {showStartTimePicker = true}) {
-                        Text(text = startTime.let { formatHourMinute(it.first, it.second) }, fontSize = 16.sp)
+                        Text(
+                            text = startTime.let { formatHourMinute(it.first, it.second) },
+                            fontSize = 16.sp,
+                            color = if (overlapError || validationError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
 
@@ -159,7 +169,10 @@ fun ReservationDialog(
                         style = MaterialTheme.typography.bodyLarge
                     )
                     TextButton(onClick = {showEndTimePicker = true}) {
-                        Text(text = endTime.let { formatHourMinute(it.first, it.second) }, fontSize = 16.sp)
+                        Text(text = endTime.let { formatHourMinute(it.first, it.second) },
+                            fontSize = 16.sp,
+                            color = if (overlapError || validationError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
                 HorizontalDivider(modifier = Modifier.padding(top = 6.dp), thickness = 2.dp)
@@ -178,14 +191,44 @@ fun ReservationDialog(
                         onDone = { focusManager.clearFocus() }
                     )
                 )
+                Spacer(modifier = Modifier.height(16.dp))
 
-                Spacer(modifier = Modifier.height(24.dp))
+                AnimatedVisibility(visible = overlapError) {
+                    Text(
+                        text = "La reserva solapa con otra existente.",
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                    )
+                }
+                AnimatedVisibility(visible = validationError != null) {
+                    Text(
+                        text = validationError ?: "",
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.height(6.dp))
+
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp, end = 24.dp),
                     horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = onDismiss) { Text("Cancelar", color = MaterialTheme.colorScheme.tertiary, fontSize = 16.sp) }
-                    TextButton(onClick = onConfirm) { Text("Guardar", color = MaterialTheme.colorScheme.tertiary, fontSize = 16.sp) }
+                    TextButton(
+                        onClick = {
+                            if (!overlapError && validationError == null) onConfirm()
+                        }
+                    ) {
+                        Text("Guardar", color = MaterialTheme.colorScheme.tertiary, fontSize = 16.sp)
+                    }
                 }
             }
         }
@@ -488,6 +531,13 @@ fun EditReservationDialog(
     val endTime by viewModel.endTime.collectAsState()
     val note by viewModel.note.collectAsState()
 
+    val overlapError by remember(newDate, startTime, endTime) {
+        derivedStateOf { viewModel.isReservationOverlap() }
+    }
+    val validationError by remember(newDate, startTime, endTime) {
+        derivedStateOf { viewModel.getValidationError() }
+    }
+
     Dialog(onDismissRequest = onDismiss) {
         val focusManager = LocalFocusManager.current
 
@@ -545,7 +595,11 @@ fun EditReservationDialog(
                         style = MaterialTheme.typography.bodyLarge
                     )
                     TextButton(onClick = {showStartTimePicker = true}) {
-                        Text(text = startTime.let { formatHourMinute(it.first, it.second) }, fontSize = 16.sp)
+                        Text(
+                            text = startTime.let { formatHourMinute(it.first, it.second) },
+                            fontSize = 16.sp,
+                            color = if (overlapError || validationError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
 
@@ -559,7 +613,11 @@ fun EditReservationDialog(
                         style = MaterialTheme.typography.bodyLarge
                     )
                     TextButton(onClick = {showEndTimePicker = true}) {
-                        Text(text = endTime.let { formatHourMinute(it.first, it.second) }, fontSize = 16.sp)
+                        Text(
+                            text = endTime.let { formatHourMinute(it.first, it.second) },
+                            fontSize = 16.sp,
+                            color = if (overlapError || validationError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
                 HorizontalDivider(modifier = Modifier.padding(top = 6.dp), thickness = 2.dp)
@@ -578,14 +636,44 @@ fun EditReservationDialog(
                         onDone = { focusManager.clearFocus() }
                     )
                 )
+                Spacer(modifier = Modifier.height(16.dp))
 
-                Spacer(modifier = Modifier.height(24.dp))
+                AnimatedVisibility(visible = overlapError) {
+                    Text(
+                        text = "La reserva solapa con otra existente.",
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                    )
+                }
+                AnimatedVisibility(visible = validationError != null) {
+                    Text(
+                        text = validationError ?: "",
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.height(6.dp))
+
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp, end = 24.dp),
                     horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = onDismiss) { Text("Cancelar", color = MaterialTheme.colorScheme.tertiary, fontSize = 16.sp) }
-                    TextButton(onClick = onConfirm) { Text("Guardar cambios", color = MaterialTheme.colorScheme.tertiary, fontSize = 16.sp) }
+                    TextButton(
+                        onClick = {
+                            if (!overlapError && validationError == null) onConfirm()
+                        }
+                    ) {
+                        Text("Guardar cambios", color = MaterialTheme.colorScheme.tertiary, fontSize = 16.sp)
+                    }
                 }
             }
         }
