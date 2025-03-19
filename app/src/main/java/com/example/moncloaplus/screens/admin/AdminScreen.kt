@@ -39,6 +39,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.moncloaplus.HOME_SCREEN
 import com.example.moncloaplus.R
 import com.example.moncloaplus.screens.AppBar
@@ -46,7 +47,9 @@ import com.example.moncloaplus.screens.account_center.AccountCenterViewModel
 import com.example.moncloaplus.screens.admin.export_meals.ExportMealsScreen
 import com.example.moncloaplus.screens.home.EXPORT_MEALS_SCREEN
 import com.example.moncloaplus.screens.home.HomeScreen
+import com.example.moncloaplus.screens.home.RESERVATION_SCREEN
 import com.example.moncloaplus.screens.home.USER_SEARCH_SCREEN
+import com.example.moncloaplus.screens.reservation.ReservationScreen
 import com.example.moncloaplus.screens.user_search.UserSearchScreen
 import kotlinx.coroutines.launch
 
@@ -122,6 +125,17 @@ fun AdminScreen(
                         shape = MaterialTheme.shapes.small
                     )
 
+                    NavigationDrawerItem(
+                        icon = { Icon(painter = painterResource(R.drawable.bookmark_check_24px), contentDescription = null) },
+                        label = { Text("Reservas") },
+                        selected = currentRoute?.destination?.route == RESERVATION_SCREEN,
+                        onClick = {
+                            scope.launch { drawerState.close() }
+                            navController.navigate(RESERVATION_SCREEN)
+                        },
+                        shape = MaterialTheme.shapes.small
+                    )
+
                     Spacer(Modifier.weight(1f))
 
                     NavigationDrawerItem(
@@ -148,7 +162,7 @@ fun AdminScreen(
                     navController = navController,
                     startDestination = HOME_SCREEN
                 ) {
-                    adminGraph(navController)
+                    adminGraph()
                 }
             }
         }
@@ -156,7 +170,7 @@ fun AdminScreen(
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-fun NavGraphBuilder.adminGraph(navController: NavHostController) {
+fun NavGraphBuilder.adminGraph() {
 
     composable(HOME_SCREEN) {
         HomeScreen()
@@ -168,6 +182,13 @@ fun NavGraphBuilder.adminGraph(navController: NavHostController) {
 
     composable(EXPORT_MEALS_SCREEN) {
         ExportMealsScreen()
+    }
+
+    composable(RESERVATION_SCREEN) {
+        val navController = rememberNavController()
+        ReservationScreen(
+            navController = navController
+        )
     }
 
 }

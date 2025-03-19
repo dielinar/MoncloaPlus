@@ -87,11 +87,8 @@ fun ReservationDialog(
     val endTime by viewModel.endTime.collectAsState()
     val note by viewModel.note.collectAsState()
 
-    val overlapError by remember(newDate, startTime, endTime) {
-        derivedStateOf { viewModel.isReservationOverlap() }
-    }
     val validationError by remember(newDate, startTime, endTime) {
-        derivedStateOf { viewModel.getValidationError() }
+        derivedStateOf { viewModel.getValidationError(index) }
     }
 
     Dialog(onDismissRequest = onDismiss) {
@@ -154,7 +151,7 @@ fun ReservationDialog(
                         Text(
                             text = startTime.let { formatHourMinute(it.first, it.second) },
                             fontSize = 16.sp,
-                            color = if (overlapError || validationError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                            color = if (validationError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -171,7 +168,7 @@ fun ReservationDialog(
                     TextButton(onClick = {showEndTimePicker = true}) {
                         Text(text = endTime.let { formatHourMinute(it.first, it.second) },
                             fontSize = 16.sp,
-                            color = if (overlapError || validationError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                            color = if (validationError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -193,17 +190,6 @@ fun ReservationDialog(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
-                AnimatedVisibility(visible = overlapError) {
-                    Text(
-                        text = "La reserva solapa con otra existente.",
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp)
-                    )
-                }
                 AnimatedVisibility(visible = validationError != null) {
                     Text(
                         text = validationError ?: "",
@@ -223,9 +209,8 @@ fun ReservationDialog(
                 ) {
                     TextButton(onClick = onDismiss) { Text("Cancelar", color = MaterialTheme.colorScheme.tertiary, fontSize = 16.sp) }
                     TextButton(
-                        onClick = {
-                            if (!overlapError && validationError == null) onConfirm()
-                        }
+                        enabled = validationError == null,
+                        onClick = { onConfirm() }
                     ) {
                         Text("Guardar", color = MaterialTheme.colorScheme.tertiary, fontSize = 16.sp)
                     }
@@ -438,9 +423,7 @@ fun MyReservationsButton(
                     modifier = Modifier.size(FilterChipDefaults.IconSize)
                 )
             }
-        } else {
-            null
-        }
+        } else null
     )
 }
 
@@ -531,11 +514,8 @@ fun EditReservationDialog(
     val endTime by viewModel.endTime.collectAsState()
     val note by viewModel.note.collectAsState()
 
-    val overlapError by remember(newDate, startTime, endTime) {
-        derivedStateOf { viewModel.isReservationOverlap() }
-    }
     val validationError by remember(newDate, startTime, endTime) {
-        derivedStateOf { viewModel.getValidationError() }
+        derivedStateOf { editingReservation?.tipo?.let { viewModel.getValidationError(it.ordinal) } }
     }
 
     Dialog(onDismissRequest = onDismiss) {
@@ -598,7 +578,7 @@ fun EditReservationDialog(
                         Text(
                             text = startTime.let { formatHourMinute(it.first, it.second) },
                             fontSize = 16.sp,
-                            color = if (overlapError || validationError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                            color = if (validationError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -616,7 +596,7 @@ fun EditReservationDialog(
                         Text(
                             text = endTime.let { formatHourMinute(it.first, it.second) },
                             fontSize = 16.sp,
-                            color = if (overlapError || validationError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                            color = if (validationError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -638,17 +618,6 @@ fun EditReservationDialog(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
-                AnimatedVisibility(visible = overlapError) {
-                    Text(
-                        text = "La reserva solapa con otra existente.",
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp)
-                    )
-                }
                 AnimatedVisibility(visible = validationError != null) {
                     Text(
                         text = validationError ?: "",
@@ -668,9 +637,8 @@ fun EditReservationDialog(
                 ) {
                     TextButton(onClick = onDismiss) { Text("Cancelar", color = MaterialTheme.colorScheme.tertiary, fontSize = 16.sp) }
                     TextButton(
-                        onClick = {
-                            if (!overlapError && validationError == null) onConfirm()
-                        }
+                        enabled = validationError == null,
+                        onClick = { onConfirm() }
                     ) {
                         Text("Guardar cambios", color = MaterialTheme.colorScheme.tertiary, fontSize = 16.sp)
                     }

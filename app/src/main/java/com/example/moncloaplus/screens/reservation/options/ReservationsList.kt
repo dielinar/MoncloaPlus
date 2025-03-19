@@ -1,8 +1,13 @@
 package com.example.moncloaplus.screens.reservation.options
 
+import android.annotation.SuppressLint
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,15 +37,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -54,15 +60,16 @@ import com.example.moncloaplus.model.User
 import com.example.moncloaplus.screens.reservation.EditReservationDialog
 import com.example.moncloaplus.screens.reservation.RESERVATION_ICONS
 import com.example.moncloaplus.screens.reservation.ReservationColors
+import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Locale
+import androidx.compose.animation.core.LinearEasing
 
 @Composable
 fun ReservationList(
     viewModel: ReservationViewModel,
     reservationsList: List<Reservation>,
-    currentUser: User,
-    onDelete: (String) -> Unit
+    currentUser: User
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -70,7 +77,7 @@ fun ReservationList(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(reservationsList) { reservation ->
-            ReservationCard(viewModel, reservation, currentUser, onDelete)
+            ReservationCard(viewModel, reservation, currentUser)
         }
     }
 }
@@ -79,15 +86,23 @@ fun ReservationList(
 fun ReservationCard(
     viewModel: ReservationViewModel,
     reservation: Reservation,
-    currentUser: User,
-    onDelete: (String) -> Unit
+    currentUser: User
 ) {
     val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-    val now = System.currentTimeMillis()
+
+    var currentTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(1000)
+            currentTime = System.currentTimeMillis()
+        }
+    }
 
     val isCurrentUser = reservation.owner?.id == currentUser.id
-    val isPastReservation = reservation.inicio.toDate().time <= now && now > reservation.final.toDate().time
-    val isCurrentReservation = reservation.inicio.toDate().time <= now && now <= reservation.final.toDate().time
+    val isPastReservation = reservation.inicio.toDate().time <= currentTime &&
+            currentTime > reservation.final.toDate().time
+    val isCurrentReservation = reservation.inicio.toDate().time <= currentTime &&
+            currentTime <= reservation.final.toDate().time
 
     val containerColor = when {
         isPastReservation -> ReservationColors.pastContainer()
@@ -140,7 +155,11 @@ fun ReservationCard(
                         false,
                         timeFormat.format(reservation.final.toDate())
                     )
-                    Text(durationText, style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic)
+                    if (isCurrentReservation) {
+//                        CountdownTimer(reservation.final.toDate().time)
+                    } else if (!isPastReservation) {
+                        Text(durationText, style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic)
+                    }
                 }
                 Text(
                     text = "${reservation.owner?.firstName} ${reservation.owner?.firstSurname} ${reservation.owner?.secondSurname}",
@@ -154,17 +173,25 @@ fun ReservationCard(
                 }
             }
 
-            if (!isPastReservation && !isCurrentReservation && isCurrentUser)
+            if ((!isPastReservation && !isCurrentReservation && isCurrentUser) || (currentUser.isAdmin()))
                 MenuOptions(
                     modifier = Modifier.align(Alignment.TopEnd),
-                    reservationId = reservation.id,
-                    viewModel = viewModel,
-                    onDelete = onDelete
+                    reservation = reservation,
+                    viewModel = viewModel
                 )
             if (isCurrentReservation) {
-                Row(modifier = Modifier.padding(12.dp).align(Alignment.TopEnd), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(painterResource(R.drawable.sensors_24px), null, tint = BadgeDefaults.containerColor, modifier = Modifier.size(28.dp).padding(end = 6.dp))
-                    Text("en curso", color = BadgeDefaults.containerColor, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, fontStyle = FontStyle.Italic)
+                Row(
+                    modifier = Modifier.padding(16.dp).align(Alignment.TopEnd),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    BlinkingLiveIcon()
+                    Text(
+                        "ahora",
+                        color = BadgeDefaults.containerColor,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Bold,
+                        fontStyle = FontStyle.Italic
+                    )
                 }
             }
 
@@ -180,7 +207,6 @@ fun ReservationCard(
             )
         }
     }
-
 }
 
 @Composable
@@ -248,9 +274,8 @@ fun NoteLabel(text: String) {
 @Composable
 fun MenuOptions(
     modifier: Modifier,
-    reservationId: String,
-    viewModel: ReservationViewModel,
-    onDelete: (String) -> Unit
+    reservation: Reservation,
+    viewModel: ReservationViewModel
 ) {
     var expanded by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -268,7 +293,7 @@ fun MenuOptions(
                 text = { Text("Editar") },
                 leadingIcon = { Icon(Icons.Filled.Edit, contentDescription = "Editar") },
                 onClick = {
-                    viewModel.loadReservationForEditing(reservationId)
+                    viewModel.loadReservationForEditing(reservation.id)
                     expanded = false
                     showEditDialog = true
                 }
@@ -293,7 +318,7 @@ fun MenuOptions(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        onDelete(reservationId)
+                        viewModel.deleteReservation(reservation)
                         showDeleteDialog = false
                     }
                 ) { Text("Sí, eliminar") }
@@ -312,7 +337,7 @@ fun MenuOptions(
         if (editingReservation == null) {
             AlertDialog(
                 onDismissRequest = {},
-                title = { Text("Cargando reserva") },
+                title = { Text("Cargando reserva", textAlign = TextAlign.Center) },
                 text = {
                     Box(
                         modifier = Modifier
@@ -345,3 +370,50 @@ fun MenuOptions(
     }
 
 }
+
+@SuppressLint("DefaultLocale")
+@Composable
+fun CountdownTimer(endTimeMillis: Long) {
+    var timeLeft by remember { mutableLongStateOf(endTimeMillis - System.currentTimeMillis()) }
+
+    LaunchedEffect(key1 = endTimeMillis) {
+        while (timeLeft > 0) {
+            delay(1000)
+            timeLeft = endTimeMillis - System.currentTimeMillis()
+        }
+    }
+
+    val seconds = (timeLeft / 1000) % 60
+    val minutes = (timeLeft / (1000 * 60)) % 60
+    val hours = (timeLeft / (1000 * 60 * 60))
+
+    Text(
+        text = String.format("%02d:%02d:%02d", hours, minutes, seconds),
+        style = MaterialTheme.typography.bodySmall,
+        fontWeight = FontWeight.Bold,
+        color = BadgeDefaults.containerColor
+    )
+}
+
+@Composable
+fun BlinkingLiveIcon() {
+    val alpha by rememberInfiniteTransition(label = "Live reservation").animateFloat(
+        initialValue = 0.3f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 600, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ), label = "Live reservation"
+    )
+
+    Icon(
+        painter = painterResource(R.drawable.sensors_24px),
+        contentDescription = null,
+        tint = BadgeDefaults.containerColor,
+        modifier = Modifier
+            .size(28.dp)
+            .padding(end = 6.dp)
+            .alpha(alpha)
+    )
+}
+

@@ -121,7 +121,7 @@ fun ClearMealsButton(
             onDismissRequest = { showDialog = false },
             icon = { Icon(painterResource(R.drawable.delete_24px), null) },
             title = { Text(text = title) },
-            text = { Text(text = dialog) },
+            text = { Text(text = dialog, textAlign = TextAlign.Center) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -137,6 +137,7 @@ fun ClearMealsButton(
             }
         )
     }
+
 }
 
 @Composable
@@ -179,7 +180,6 @@ fun SaveMealsButton(buttonText: String, onSave: () -> Unit, enabled: Boolean) {
         enabled = enabled,
         shape = MaterialTheme.shapes.small
     ) {
-        Icon(painter = painterResource(R.drawable.save_24px), null, Modifier.padding(end = 8.dp).size(18.dp))
         Text(text = buttonText)
     }
 

@@ -26,6 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.moncloaplus.screens.account_center.AccountCenterViewModel
 import com.example.moncloaplus.model.ReservationViewModel
 import com.example.moncloaplus.screens.reservation.DatePickerFieldToModal
+import com.example.moncloaplus.screens.reservation.LoadingIndicator
 import com.example.moncloaplus.screens.reservation.MyReservationsButton
 import com.example.moncloaplus.screens.reservation.NewReservationButton
 import com.example.moncloaplus.screens.reservation.PADEL_INDEX
@@ -40,6 +41,7 @@ fun PadelScreen(
     val userReservations by resViewModel.userReservations.collectAsState()
     val currentUser by accViewModel.user.collectAsState()
     val currentDate by resViewModel.currentDate.collectAsState()
+    val isLoading by resViewModel.isLoading.collectAsState()
 
     var selected by remember { mutableStateOf(false) }
 
@@ -61,49 +63,45 @@ fun PadelScreen(
                 DatePickerFieldToModal(
                     PADEL_INDEX,
                     currentDate,
-                    onDateSelected = { type, selectedDate ->
-                        resViewModel.updateCurrentDate(type, selectedDate)
-                    }
+                    onDateSelected = { type, selectedDate -> resViewModel.updateCurrentDate(type, selectedDate) }
                 )
             }
             Spacer(modifier = Modifier.height(4.dp))
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(end = 24.dp),
+                modifier = Modifier.fillMaxWidth().padding(end = 24.dp),
                 contentAlignment = Alignment.CenterEnd
             ) {
                 MyReservationsButton(
                     selected = selected,
                     onSelectedChange = { newValue ->
                         selected = newValue
-                        if (newValue) {
-                            resViewModel.fetchUserReservations(PADEL_INDEX, currentDate)
-                        }
+                        if (newValue) resViewModel.fetchUserReservations(PADEL_INDEX, currentDate)
                     }
                 )
             }
 
-            val normalizedCurrentDate = normalizeDate(currentDate)
-            val reservationsToShow = if (selected) {
-                userReservations[PADEL_INDEX] ?: emptyList()
+            if (isLoading) {
+                LoadingIndicator()
             } else {
-                reservationsByDate[normalizedCurrentDate] ?: emptyList()
-            }
-            if (reservationsToShow.isEmpty()) {
-                Text(
-                    text = if (selected) "No tienes reservas para este día." else "Sin reservas para este día.",
-                    modifier = Modifier.fillMaxSize().padding(16.dp),
-                    textAlign = TextAlign.Center,
-                    fontStyle = FontStyle.Italic
-                )
-            } else {
-                ReservationList(
-                    resViewModel,
-                    reservationsToShow,
-                    currentUser,
-                    onDelete = { resId -> resViewModel.deleteReservation(resId) }
-                )
+                val normalizedCurrentDate = normalizeDate(currentDate)
+                val reservationsToShow = if (selected) {
+                    userReservations[PADEL_INDEX]?.get(normalizedCurrentDate)
+                } else {
+                    reservationsByDate[PADEL_INDEX]?.get(normalizedCurrentDate)
+                }
+
+                if (reservationsToShow == null) {
+                    // No mostrar nada si aún no están listas las reservas (evita el mensaje falso)
+                } else if (reservationsToShow.isEmpty()) {
+                    Text(
+                        text = if (selected) "No tienes reservas para este día." else "Sin reservas para este día.",
+                        modifier = Modifier.fillMaxSize().padding(16.dp),
+                        textAlign = TextAlign.Center,
+                        fontStyle = FontStyle.Italic
+                    )
+                } else {
+                    ReservationList(resViewModel, reservationsToShow, currentUser)
+                }
             }
 
         }

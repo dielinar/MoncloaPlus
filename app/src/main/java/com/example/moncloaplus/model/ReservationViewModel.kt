@@ -38,14 +38,17 @@ class ReservationViewModel @Inject constructor(
     private val _note = MutableStateFlow("")
     val note: StateFlow<String> = _note.asStateFlow()
 
-    private val _userReservations = MutableStateFlow<Map<Int, List<Reservation>>>(emptyMap())
-    val userReservations: StateFlow<Map<Int, List<Reservation>>> = _userReservations.asStateFlow()
+    private val _userReservations = MutableStateFlow<Map<Int, Map<Long, List<Reservation>>>>(emptyMap())
+    val userReservations: StateFlow<Map<Int, Map<Long, List<Reservation>>>> = _userReservations.asStateFlow()
 
-    private val _reservationsByDate = MutableStateFlow<Map<Long, List<Reservation>>>(emptyMap())
-    val reservationsByDate: StateFlow<Map<Long, List<Reservation>>> = _reservationsByDate.asStateFlow()
+    private val _reservationsByDate = MutableStateFlow<Map<Int, Map<Long, List<Reservation>>>>(emptyMap())
+    val reservationsByDate: StateFlow<Map<Int, Map<Long, List<Reservation>>>> = _reservationsByDate.asStateFlow()
 
     private val _editingReservation = MutableStateFlow<Reservation?>(null)
     val editingReservation = _editingReservation.asStateFlow()
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     init {
         val today = normalizeDate(System.currentTimeMillis())
@@ -71,6 +74,7 @@ class ReservationViewModel @Inject constructor(
 
     fun createReservation(type: ReservType) {
         launchCatching {
+            _isLoading.value = true
             val currentUser = storageService.getUser(accountService.currentUserId)
 
             val reservation = Reservation(
@@ -89,6 +93,7 @@ class ReservationViewModel @Inject constructor(
             addToReservationsByDate(reservation)
 
             resetValues()
+            _isLoading.value = false
         }
     }
 
@@ -99,32 +104,42 @@ class ReservationViewModel @Inject constructor(
         updateNote("")
     }
 
-    fun deleteReservation(reservationId: String) {
+    fun deleteReservation(reservation: Reservation) {
         launchCatching {
-            reservationService.deleteReservation(reservationId)
+            _isLoading.value = true
+            reservationService.deleteReservation(reservation.id)
             SnackbarManager.showMessage("Reserva eliminada correctamente.")
 
-            removeFromUserReservations(reservationId)
-            removeFromReservationsByDate(reservationId)
+            removeFromUserReservations(reservation.id)
+            removeFromReservationsByDate(reservation.id, reservation.tipo.ordinal)
+            _isLoading.value = false
         }
     }
 
     fun fetchUserReservations(type: Int, dateMillis: Long) {
         launchCatching {
+            _isLoading.value = true
             val reservationList = reservationService.getUserReservations(type, dateMillis)
+            val sortedList = reservationList.sortedBy { it.inicio }
+            val normalizedMap = sortedList.groupBy { normalizeDate(it.inicio.toDate().time) }
             _userReservations.value = _userReservations.value.toMutableMap().apply {
-                this[type] = reservationList
+                put(type, normalizedMap)
             }
+            _isLoading.value = false
         }
     }
 
     fun fetchReservationsByDate(type: Int, dateMillis: Long) {
         launchCatching {
+            _isLoading.value = true
             val normalizedDate = normalizeDate(dateMillis)
             val reservationList = reservationService.getReservationsOnDay(type, dateMillis)
             _reservationsByDate.value = _reservationsByDate.value.toMutableMap().apply {
-                put(normalizedDate, reservationList)
+                val updatedTypeReservations = get(type)?.toMutableMap() ?: mutableMapOf()
+                updatedTypeReservations[normalizedDate] = reservationList
+                put(type, updatedTypeReservations)
             }
+            _isLoading.value = false
         }
     }
 
@@ -171,9 +186,9 @@ class ReservationViewModel @Inject constructor(
         }
     }
 
-    fun isReservationOverlap(): Boolean {
+    private fun isReservationOverlap(type: Int): Boolean {
         val normalizedDate = normalizeDate(_newDate.value)
-        val reservationsToday = _reservationsByDate.value[normalizedDate] ?: emptyList()
+        val reservationsToday = _reservationsByDate.value[type]?.get(normalizedDate) ?: emptyList()
         val newStart = getStartTimestamp()
         val newEnd = getEndTimestamp()
 
@@ -190,74 +205,75 @@ class ReservationViewModel @Inject constructor(
         }
     }
 
-    fun getValidationError(): String? {
+    fun getValidationError(type: Int): String? {
         val startTimestamp = getStartTimestamp()
         val endTimestamp = getEndTimestamp()
         val now = Timestamp.now()
 
-        // La hora de inicio debe ser estrictamente mayor que la actual.
-        if (!startTimestamp.toDate().after(now.toDate())) {
-            return "La hora de inicio debe ser posterior a la actual."
-        }
+        return when {
+            isReservationOverlap(type) -> "La reserva solapa con otra existente."
 
-        // Hora de fin mayor que hora de inicio
-        if (!endTimestamp.toDate().after(startTimestamp.toDate())) {
-            return "La hora final debe ser mayor que la de inicio."
-        }
+            !startTimestamp.toDate().after(now.toDate()) -> "La hora de inicio debe ser posterior a la actual."
 
-        // La reserva no puede extenderse a otro día
-        val startCalendar = Calendar.getInstance().apply { time = startTimestamp.toDate() }
-        val endCalendar = Calendar.getInstance().apply { time = endTimestamp.toDate() }
-        if (startCalendar.get(Calendar.YEAR) != endCalendar.get(Calendar.YEAR) ||
-            startCalendar.get(Calendar.MONTH) != endCalendar.get(Calendar.MONTH) ||
-            startCalendar.get(Calendar.DAY_OF_MONTH) != endCalendar.get(Calendar.DAY_OF_MONTH)
-            ) {
-            return "La reserva no puede terminar en otro día."
-        }
-        return null
-    }
+            !endTimestamp.toDate().after(startTimestamp.toDate()) -> "La hora final debe ser mayor que la de inicio."
 
-    fun hasCurrentReservationForType(type: Int, currentTime: Long): Boolean {
-        val todayKey = normalizeDate(currentTime)
-        val reservationsForToday = _reservationsByDate.value[todayKey] ?: emptyList()
-        return reservationsForToday.any { reservation ->
-            reservation.tipo.ordinal == type &&
-                    reservation.inicio.toDate().time <= currentTime &&
-                    reservation.final.toDate().time >= currentTime
+            else -> {
+                val startCalendar = Calendar.getInstance().apply { time = startTimestamp.toDate() }
+                val endCalendar = Calendar.getInstance().apply { time = endTimestamp.toDate() }
+                if (startCalendar.get(Calendar.YEAR) != endCalendar.get(Calendar.YEAR) ||
+                    startCalendar.get(Calendar.MONTH) != endCalendar.get(Calendar.MONTH) ||
+                    startCalendar.get(Calendar.DAY_OF_MONTH) != endCalendar.get(Calendar.DAY_OF_MONTH)
+                ) {
+                    "La reserva no puede terminar en otro día."
+                } else null
+            }
         }
     }
 
     private fun addToUserReservations(reservation: Reservation) {
-        val key = reservation.tipo.ordinal
-        val currentList = _userReservations.value[key] ?: emptyList()
-        val newList = (currentList + reservation).sortedBy { it.inicio }
+        val typeKey = reservation.tipo.ordinal
+        val normalizedDate = normalizeDate(reservation.inicio.toDate().time)
         _userReservations.value = _userReservations.value.toMutableMap().apply {
-            put(key, newList)
+            val updatedTypeReservations = get(typeKey)?.toMutableMap() ?: mutableMapOf()
+            val currentList = updatedTypeReservations[normalizedDate] ?: emptyList()
+            val newList = (currentList + reservation).sortedBy { it.inicio }
+            updatedTypeReservations[normalizedDate] = newList
+            put(typeKey, updatedTypeReservations)
         }
     }
 
     private fun removeFromUserReservations(reservationId: String) {
         _userReservations.value = _userReservations.value.toMutableMap().apply {
-            forEach { (key, list) ->
-                put(key, list.filterNot { it.id == reservationId })
+            forEach { (type, reservationsByDate) ->
+                val updatedReservationsByDate = reservationsByDate.toMutableMap()
+                updatedReservationsByDate.keys.forEach { date ->
+                    updatedReservationsByDate[date] = updatedReservationsByDate[date]?.filterNot { it.id == reservationId } ?: emptyList()
+                }
+                put(type, updatedReservationsByDate)
             }
         }
     }
 
     private fun addToReservationsByDate(reservation: Reservation) {
+        val typeKey = reservation.tipo.ordinal
         val normalizedDate = normalizeDate(reservation.inicio.toDate().time)
+
         _reservationsByDate.value = _reservationsByDate.value.toMutableMap().apply {
-            val currentList = get(normalizedDate) ?: emptyList()
+            val updatedTypeReservations = get(typeKey)?.toMutableMap() ?: mutableMapOf()
+            val currentList = updatedTypeReservations[normalizedDate] ?: emptyList()
             val newList = (currentList + reservation).sortedBy { it.inicio }
-            put(normalizedDate, newList)
+            updatedTypeReservations[normalizedDate] = newList
+            put(typeKey, updatedTypeReservations)
         }
     }
 
-    private fun removeFromReservationsByDate(reservationId: String) {
+    private fun removeFromReservationsByDate(reservationId: String, type: Int) {
         _reservationsByDate.value = _reservationsByDate.value.toMutableMap().apply {
-            forEach { (date, list) ->
-                put(date, list.filterNot { it.id == reservationId })
+            val updatedTypeReservations = get(type)?.toMutableMap() ?: return@apply
+            updatedTypeReservations.keys.forEach { date ->
+                updatedTypeReservations[date] = updatedTypeReservations[date]?.filterNot { it.id == reservationId } ?: emptyList()
             }
+            put(type, updatedTypeReservations)
         }
     }
 
