@@ -85,17 +85,17 @@ fun PadelScreen(
             } else {
                 val normalizedCurrentDate = normalizeDate(currentDate)
                 val reservationsToShow = if (selected) {
-                    userReservations[PADEL_INDEX]?.get(normalizedCurrentDate)
+                    userReservations[PADEL_INDEX]?.get(normalizedCurrentDate) ?: emptyList()
                 } else {
-                    reservationsByDate[PADEL_INDEX]?.get(normalizedCurrentDate)
+                    reservationsByDate[PADEL_INDEX]?.get(normalizedCurrentDate) ?: emptyList()
                 }
 
-                if (reservationsToShow == null) {
-                    // No mostrar nada si aún no están listas las reservas (evita el mensaje falso)
-                } else if (reservationsToShow.isEmpty()) {
+                if (reservationsToShow.isEmpty()) {
                     Text(
                         text = if (selected) "No tienes reservas para este día." else "Sin reservas para este día.",
-                        modifier = Modifier.fillMaxSize().padding(16.dp),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
                         textAlign = TextAlign.Center,
                         fontStyle = FontStyle.Italic
                     )

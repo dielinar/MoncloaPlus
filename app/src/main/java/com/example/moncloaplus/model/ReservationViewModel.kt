@@ -13,6 +13,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import java.util.Calendar
 import javax.inject.Inject
 
@@ -38,23 +39,27 @@ class ReservationViewModel @Inject constructor(
     private val _note = MutableStateFlow("")
     val note: StateFlow<String> = _note.asStateFlow()
 
-    private val _userReservations = MutableStateFlow<Map<Int, Map<Long, List<Reservation>>>>(emptyMap())
-    val userReservations: StateFlow<Map<Int, Map<Long, List<Reservation>>>> = _userReservations.asStateFlow()
-
-    private val _reservationsByDate = MutableStateFlow<Map<Int, Map<Long, List<Reservation>>>>(emptyMap())
-    val reservationsByDate: StateFlow<Map<Int, Map<Long, List<Reservation>>>> = _reservationsByDate.asStateFlow()
-
     private val _editingReservation = MutableStateFlow<Reservation?>(null)
     val editingReservation = _editingReservation.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _userReservations = MutableStateFlow<Map<Int, Map<Long, List<Reservation>>>>(emptyMap())
+    val userReservations: StateFlow<Map<Int, Map<Long, List<Reservation>>>> = _userReservations.asStateFlow()
+
+    private val _reservationsByDate = MutableStateFlow<Map<Int, Map<Long, List<Reservation>>>>(emptyMap())
+    val reservationsByDate: StateFlow<Map<Int, Map<Long, List<Reservation>>>> = _reservationsByDate.asStateFlow()
+
+    private val _participantsMap = MutableStateFlow<Map<String, List<User>>>(emptyMap())
+    val participantsMap: StateFlow<Map<String, List<User>>> = _participantsMap.asStateFlow()
+
     init {
         val today = normalizeDate(System.currentTimeMillis())
 
         ReservType.entries.forEach { type ->
             fetchReservationsByDate(type.ordinal, today)
+            fetchUserReservations(type.ordinal, today)
         }
     }
 
@@ -75,7 +80,9 @@ class ReservationViewModel @Inject constructor(
     fun createReservation(type: ReservType) {
         launchCatching {
             _isLoading.value = true
+
             val currentUser = storageService.getUser(accountService.currentUserId)
+            val participantsList = if (type == ReservType.GYM) listOf(currentUser!!.id) else emptyList()
 
             val reservation = Reservation(
                 id = "",
@@ -83,16 +90,19 @@ class ReservationViewModel @Inject constructor(
                 final = getEndTimestamp(),
                 nota = _note.value,
                 tipo = type,
-                owner = currentUser
+                participantes = participantsList,
+                owner = currentUser,
             )
-            reservationService.createReservation(reservation)
+            val newReservation = reservationService.createReservation(reservation)
 
             SnackbarManager.showMessage("Reserva creada correctamente.")
 
-            addToUserReservations(reservation)
-            addToReservationsByDate(reservation)
+            addToUserReservations(newReservation)
+            addToReservationsByDate(newReservation)
+            addParticipant(newReservation, currentUser!!.id)
 
             resetValues()
+
             _isLoading.value = false
         }
     }
@@ -116,14 +126,34 @@ class ReservationViewModel @Inject constructor(
         }
     }
 
+    fun adminDelete(reservation: Reservation) {
+        launchCatching {
+            _isLoading.value = true
+            reservationService.adminDelete(reservation.owner!!.id, reservation.id)
+            SnackbarManager.showMessage("Reserva eliminada correctamente.")
+
+            removeFromUserReservations(reservation.id)
+            removeFromReservationsByDate(reservation.id, reservation.tipo.ordinal)
+            _isLoading.value = false
+        }
+    }
+
     fun fetchUserReservations(type: Int, dateMillis: Long) {
         launchCatching {
             _isLoading.value = true
             val reservationList = reservationService.getUserReservations(type, dateMillis)
             val sortedList = reservationList.sortedBy { it.inicio }
             val normalizedMap = sortedList.groupBy { normalizeDate(it.inicio.toDate().time) }
+
+            val normalizedDate = normalizeDate(dateMillis)
+            val updatedMap = normalizedMap.toMutableMap().apply {
+                if (this[normalizedDate] == null) {
+                    put(normalizedDate, emptyList())
+                }
+            }
+
             _userReservations.value = _userReservations.value.toMutableMap().apply {
-                put(type, normalizedMap)
+                put(type, updatedMap)
             }
             _isLoading.value = false
         }
@@ -139,7 +169,30 @@ class ReservationViewModel @Inject constructor(
                 updatedTypeReservations[normalizedDate] = reservationList
                 put(type, updatedTypeReservations)
             }
+            reservationList.forEach { reservation ->
+                fetchParticipants(reservation)
+            }
             _isLoading.value = false
+        }
+    }
+
+    fun adminLoadReservationForEditing(userId: String, reservationId: String) {
+        launchCatching {
+            val reservation = reservationService.adminGetReservation(userId, reservationId)
+            reservation?.let {
+                _editingReservation.value = it
+
+                _newDate.value = it.inicio.toDate().time
+
+                val calendar = Calendar.getInstance()
+                calendar.time = it.inicio.toDate()
+                _startTime.value = Pair(calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE))
+
+                calendar.time = it.final.toDate()
+                _endTime.value = Pair(calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE))
+
+                _note.value = it.nota
+            }
         }
     }
 
@@ -172,7 +225,7 @@ class ReservationViewModel @Inject constructor(
                     nota = _note.value
                 )
                 reservationService.editReservation(updatedReservation)
-                SnackbarManager.showMessage("Reserva actualizada correctamente.")
+                SnackbarManager.showMessage("Reserva editada correctamente.")
             }
 
             _editingReservation.value?.tipo?.let { _editingReservation.value?.inicio?.toDate()
@@ -186,22 +239,26 @@ class ReservationViewModel @Inject constructor(
         }
     }
 
-    private fun isReservationOverlap(type: Int): Boolean {
-        val normalizedDate = normalizeDate(_newDate.value)
-        val reservationsToday = _reservationsByDate.value[type]?.get(normalizedDate) ?: emptyList()
-        val newStart = getStartTimestamp()
-        val newEnd = getEndTimestamp()
+    fun adminEdit() {
+        launchCatching {
+            _editingReservation.value?.let { original ->
+                val updatedReservation = original.copy(
+                    inicio = getStartTimestamp(),
+                    final = getEndTimestamp(),
+                    nota = _note.value
+                )
+                reservationService.adminEdit(updatedReservation)
+                SnackbarManager.showMessage("Reserva editada correctamente.")
+            }
 
-        val editingReservation = _editingReservation.value
+            _editingReservation.value?.tipo?.let { _editingReservation.value?.inicio?.toDate()
+                ?.let { it1 -> fetchUserReservations(it.ordinal, it1.time) } }
+            _editingReservation.value?.tipo?.let { _editingReservation.value?.inicio?.toDate()
+                ?.let { it1 -> fetchReservationsByDate(it.ordinal, it1.time) } }
 
-        val filteredReservations = if (editingReservation != null) {
-            reservationsToday.filter { it.id != editingReservation.id }
-        } else {
-            reservationsToday
-        }
+            resetValues()
 
-        return filteredReservations.any { existing ->
-            newStart < existing.final && newEnd > existing.inicio
+            _editingReservation.value = null
         }
     }
 
@@ -227,6 +284,63 @@ class ReservationViewModel @Inject constructor(
                     "La reserva no puede terminar en otro día."
                 } else null
             }
+        }
+    }
+
+    fun addParticipant(reservation: Reservation, participantId: String) {
+        launchCatching {
+            reservationService.addParticipant(reservation, participantId)
+            val newParticipant = storageService.getUser(participantId)!!
+            _participantsMap.update { currentMap ->
+                val currentList = currentMap[reservation.id] ?: emptyList()
+                currentMap.toMutableMap().apply {
+                    put(reservation.id, currentList + newParticipant)
+                }
+            }
+        }
+    }
+
+    fun deleteParticipant(reservation: Reservation, participantId: String) {
+        launchCatching {
+            reservationService.deleteParticipant(reservation, participantId)
+            _participantsMap.update { currentMap ->
+                val currentList = currentMap[reservation.id] ?: emptyList()
+                currentMap.toMutableMap().apply {
+                    put(reservation.id, currentList.filterNot { it.id == participantId })
+                }
+            }
+        }
+    }
+
+    private fun fetchParticipants(reservation: Reservation) {
+        launchCatching {
+            val users = reservation.participantes.mapNotNull { userId ->
+                storageService.getUser(userId)
+            }
+            _participantsMap.update { currentMap ->
+                currentMap.toMutableMap().apply {
+                    put(reservation.id, users)
+                }
+            }
+        }
+    }
+
+    private fun isReservationOverlap(type: Int): Boolean {
+        val normalizedDate = normalizeDate(_newDate.value)
+        val reservationsToday = _reservationsByDate.value[type]?.get(normalizedDate) ?: emptyList()
+        val newStart = getStartTimestamp()
+        val newEnd = getEndTimestamp()
+
+        val editingReservation = _editingReservation.value
+
+        val filteredReservations = if (editingReservation != null) {
+            reservationsToday.filter { it.id != editingReservation.id }
+        } else {
+            reservationsToday
+        }
+
+        return filteredReservations.any { existing ->
+            newStart < existing.final && newEnd > existing.inicio
         }
     }
 

@@ -24,7 +24,6 @@ class AccountCenterViewModel @Inject constructor(
     init {
         launchCatching {
             _user.value = storageService.getUser(accountService.currentUserId)!!
-//            _user.value = accountService.getUserProfile()
         }
     }
 

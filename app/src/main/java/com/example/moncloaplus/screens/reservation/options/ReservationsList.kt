@@ -64,6 +64,18 @@ import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Locale
 import androidx.compose.animation.core.LinearEasing
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.IconToggleButton
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
+import com.example.moncloaplus.model.MAX_GYM_PARTICIPANTS
+import com.example.moncloaplus.model.ReservType
 
 @Composable
 fun ReservationList(
@@ -88,6 +100,13 @@ fun ReservationCard(
     reservation: Reservation,
     currentUser: User
 ) {
+    val participantsForReservation = viewModel.participantsMap.collectAsState().value[reservation.id] ?: emptyList()
+    val isParticipating = participantsForReservation.any { it.id == currentUser.id }
+    val canParticipate = participantsForReservation.size < MAX_GYM_PARTICIPANTS
+    val numberOfParticipants = participantsForReservation.size
+
+    var showParticipantsDialog by remember { mutableStateOf(false) }
+
     val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
 
     var currentTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
@@ -129,44 +148,82 @@ fun ReservationCard(
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isPastReservation) 0.dp else 4.dp),
         shape = MaterialTheme.shapes.extraSmall,
         colors = CardDefaults.cardColors(
             containerColor = containerColor,
             contentColor = contentColor
         )
     ) {
-        Box(modifier = Modifier.fillMaxWidth().background(containerColor)) {
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .background(containerColor)) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    TimeCard(
-                        isPastReservation,
-                        true,
-                        timeFormat.format(reservation.inicio.toDate())
-                    )
-                    TimeCard(
-                        isPastReservation,
-                        false,
-                        timeFormat.format(reservation.final.toDate())
-                    )
-                    if (isCurrentReservation) {
-//                        CountdownTimer(reservation.final.toDate().time)
-                    } else if (!isPastReservation) {
-                        Text(durationText, style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic)
-                    }
+                    TimeCard(isPastReservation, true, timeFormat.format(reservation.inicio.toDate()))
+                    TimeCard(isPastReservation, false, timeFormat.format(reservation.final.toDate()))
                 }
                 Text(
                     text = "${reservation.owner?.firstName} ${reservation.owner?.firstSurname} ${reservation.owner?.secondSurname}",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(start = 16.dp, bottom = 24.dp)
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
                 )
+
+                if (reservation.tipo == ReservType.GYM) {
+                    Row(modifier = Modifier.fillMaxWidth().padding(start = 4.dp, bottom = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically) {
+                        TextButton(onClick = { showParticipantsDialog = true },
+                            colors = ButtonDefaults.textButtonColors(contentColor = contentColor),
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.group_24px),
+                                contentDescription = null,
+                                modifier = Modifier.size(26.dp).padding(end = 6.dp)
+                            )
+                            Text(
+                                text = "${numberOfParticipants}/$MAX_GYM_PARTICIPANTS",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        if (!isCurrentUser && (isParticipating || canParticipate)) {
+                            FilterChip(
+                                onClick = {
+                                    if (isParticipating) {
+                                        viewModel.deleteParticipant(reservation, currentUser.id)
+                                    } else {
+                                        viewModel.addParticipant(reservation, currentUser.id)
+                                    }
+                                },
+                                label = { Text(if (isParticipating) "Te has unido" else "Unirme") },
+                                selected = isParticipating,
+                                enabled = !isCurrentReservation && !isPastReservation,
+                                modifier = Modifier.scale(0.7f).offset(x = (-16).dp),
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = ReservationColors.greenContainer,
+                                    selectedLabelColor = ReservationColors.greenContent,
+                                    selectedLeadingIconColor = ReservationColors.greenContent
+                                ),
+                                leadingIcon = if (isParticipating) {
+                                    {
+                                        Icon(
+                                            imageVector = Icons.Filled.Done,
+                                            contentDescription = "DoneIcon",
+                                            modifier = Modifier.size(FilterChipDefaults.IconSize)
+                                        )
+                                    }
+                                } else {
+                                    null
+                                }
+                            )
+                        }
+                    }
+                }
                 if (reservation.nota.isNotBlank()) {
                     HorizontalDivider(color = dividerColor, thickness = Dp.Hairline)
                     NoteLabel(reservation.nota)
@@ -175,13 +232,16 @@ fun ReservationCard(
 
             if ((!isPastReservation && !isCurrentReservation && isCurrentUser) || (currentUser.isAdmin()))
                 MenuOptions(
+                    currentUser = currentUser,
                     modifier = Modifier.align(Alignment.TopEnd),
                     reservation = reservation,
                     viewModel = viewModel
                 )
             if (isCurrentReservation) {
                 Row(
-                    modifier = Modifier.padding(16.dp).align(Alignment.TopEnd),
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .align(Alignment.TopEnd),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     BlinkingLiveIcon()
@@ -194,7 +254,7 @@ fun ReservationCard(
                     )
                 }
             }
-
+            
             Icon(
                 painter = painterResource(RESERVATION_ICONS[reservation.tipo.ordinal]),
                 contentDescription = "Reservation icon",
@@ -206,6 +266,38 @@ fun ReservationCard(
                 tint = contentColor
             )
         }
+    }
+
+    if (showParticipantsDialog) {
+        AlertDialog(
+            onDismissRequest = { showParticipantsDialog = false },
+            icon = { Icon(painterResource(R.drawable.group_24px), null) },
+            title = { Text("Participantes", textAlign = TextAlign.Center) },
+            text = {
+                Column {
+                    HorizontalDivider(modifier = Modifier.padding(bottom = 12.dp))
+                    participantsForReservation.forEach { user ->
+                        Row(modifier = Modifier.padding(12.dp).fillMaxWidth()) {
+                            Icon(
+                                painter = painterResource(if (reservation.owner!!.id == user.id) R.drawable.shield_person_24px else R.drawable.person_24px),
+                                contentDescription = null,
+                                modifier = Modifier.padding(end = 8.dp)
+                            )
+                            Text(
+                                text = if (user.id == currentUser.id) "Yo" else "${user.firstName} ${user.firstSurname} ${user.secondSurname}",
+                                fontWeight = if (reservation.owner!!.id == user.id) FontWeight.Bold else FontWeight.Normal,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showParticipantsDialog = false }) {
+                    Text("Cerrar")
+                }
+            }
+        )
     }
 }
 
@@ -261,7 +353,9 @@ fun getDurationText(startTime: Long, endTime: Long): String {
 
 @Composable
 fun NoteLabel(text: String) {
-    Row(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+    Row(modifier = Modifier
+        .fillMaxWidth()
+        .padding(16.dp)) {
         Text(
             text,
             fontStyle = FontStyle.Italic,
@@ -273,6 +367,7 @@ fun NoteLabel(text: String) {
 
 @Composable
 fun MenuOptions(
+    currentUser: User,
     modifier: Modifier,
     reservation: Reservation,
     viewModel: ReservationViewModel
@@ -293,7 +388,8 @@ fun MenuOptions(
                 text = { Text("Editar") },
                 leadingIcon = { Icon(Icons.Filled.Edit, contentDescription = "Editar") },
                 onClick = {
-                    viewModel.loadReservationForEditing(reservation.id)
+                    if (currentUser.isAdmin()) viewModel.adminLoadReservationForEditing(reservation.owner!!.id, reservation.id)
+                    else viewModel.loadReservationForEditing(reservation.id)
                     expanded = false
                     showEditDialog = true
                 }
@@ -314,11 +410,12 @@ fun MenuOptions(
             onDismissRequest = { showDeleteDialog = false },
             icon = { Icon(painterResource(R.drawable.delete_24px), null) },
             title = { Text("Eliminar reserva") },
-            text = { Text("¿Estás seguro de eliminar tu reserva?") },
+            text = { Text("¿Estás seguro de eliminar la reserva?") },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        viewModel.deleteReservation(reservation)
+                        if (currentUser.isAdmin()) viewModel.adminDelete(reservation)
+                            else viewModel.deleteReservation(reservation)
                         showDeleteDialog = false
                     }
                 ) { Text("Sí, eliminar") }
@@ -362,7 +459,8 @@ fun MenuOptions(
                     showEditDialog = false
                 },
                 onConfirm = {
-                    viewModel.editReservation()
+                    if (currentUser.isAdmin()) viewModel.adminEdit()
+                        else viewModel.editReservation()
                     showEditDialog = false
                 }
             )
@@ -416,4 +514,3 @@ fun BlinkingLiveIcon() {
             .alpha(alpha)
     )
 }
-

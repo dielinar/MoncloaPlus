@@ -28,9 +28,11 @@ class ReservationServiceImpl @Inject constructor(
     private val reservationsCollection: CollectionReference
         get() = userId.let { usersCollection.document(it).collection("reservations") }
 
-    override suspend fun createReservation(reservation: Reservation) {
+    override suspend fun createReservation(reservation: Reservation): Reservation {
         val docRef = reservationsCollection.add(reservation).await()
-        reservation.id = docRef.id
+        val newReservation = reservation.copy(id = docRef.id)
+        reservationsCollection.document(docRef.id).set(newReservation).await()
+        return newReservation
     }
 
     override suspend fun deleteReservation(reservationId: String) {
@@ -39,8 +41,22 @@ class ReservationServiceImpl @Inject constructor(
             .await()
     }
 
+    override suspend fun adminDelete(userId: String, reservationId: String) {
+        usersCollection.document(userId).collection("reservations")
+            .document(reservationId)
+            .delete()
+            .await()
+    }
+
     override suspend fun editReservation(reservation: Reservation) {
         reservationsCollection.document(reservation.id)
+            .set(reservation)
+            .await()
+    }
+
+    override suspend fun adminEdit(reservation: Reservation) {
+        usersCollection.document(reservation.owner!!.id).collection("reservations")
+            .document(reservation.id)
             .set(reservation)
             .await()
     }
@@ -59,6 +75,26 @@ class ReservationServiceImpl @Inject constructor(
             }
             reservation
         } catch(e: Exception) {
+            Log.e("Firestore", "Error al obtener la reserva", e)
+            null
+        }
+    }
+
+    override suspend fun adminGetReservation(userId: String, reservationId: String): Reservation? {
+        return try {
+            val doc = usersCollection.document(userId)
+                .collection("reservations")
+                .document(reservationId)
+                .get()
+                .await()
+            val reservation = doc.toObject(Reservation::class.java)?.copy(id = doc.id)
+
+            reservation?.let {
+                val user = storageService.getUser(userId)
+                it.owner = user
+            }
+            reservation
+        } catch (e: Exception) {
             Log.e("Firestore", "Error al obtener la reserva", e)
             null
         }
@@ -156,5 +192,30 @@ class ReservationServiceImpl @Inject constructor(
             emptyList()
         }
     }
+
+    override suspend fun addParticipant(reservation: Reservation, participantId: String) {
+        val ownerId = reservation.owner?.id ?: return
+        val reservationRef = usersCollection.document(ownerId)
+            .collection("reservations")
+            .document(reservation.id)
+
+        val currentParticipants = reservation.participantes.toMutableList()
+        if (!currentParticipants.contains(participantId)) {
+            currentParticipants.add(participantId)
+            reservationRef.update("participantes", currentParticipants).await()
+        }
+    }
+
+    override suspend fun deleteParticipant(reservation: Reservation, participantId: String) {
+        val ownerId = reservation.owner?.id ?: return
+        val reservationRef = usersCollection.document(ownerId)
+            .collection("reservations")
+            .document(reservation.id)
+
+        val updatedParticipants = reservation.participantes.filterNot { it == participantId }
+        reservationRef.update("participantes", updatedParticipants).await()
+    }
+
+
 
 }
