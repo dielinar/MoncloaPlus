@@ -8,7 +8,7 @@ object MealColors {
     val prontoContainer = Color(0xFFD6F6D6)
     val tardeContainerDark = Color(0xFFE5B789)
     val tardeContainerLight = Color(0xFFFAD7BA)
-    val noSelectionContainer = Color(0xFFE35353)
+    val noSelectionContainer = Color(0xCCF36363)
 
     @Composable
     fun breakfastContainer() = MaterialTheme.colorScheme.surfaceContainerLowest

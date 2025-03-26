@@ -44,8 +44,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -84,9 +86,15 @@ fun SingleChoiceSegmentedButton(
                     }
                 },
                 selected = isSelected,
-                label = { Text(label) },
+                label = { Text(label, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal) },
                 icon = {},
-                enabled = !isTemplateApplied
+                enabled = !isTemplateApplied,
+                colors = SegmentedButtonDefaults.colors(
+                    activeContainerColor = MaterialTheme.colorScheme.primary.copy(0.15f),
+                    disabledActiveContainerColor = MaterialTheme.colorScheme.primary.copy(0.1f),
+                    disabledInactiveContentColor = SegmentedButtonDefaults.colors().disabledActiveContentColor,
+                    disabledInactiveBorderColor = SegmentedButtonDefaults.colors().disabledActiveBorderColor
+                )
             )
         }
     }
@@ -196,6 +204,7 @@ fun MealDropdown(
 ) {
     var expanded by remember { mutableStateOf(false) }
     val selectedOption = selected ?: "-"
+    val focusManager = LocalFocusManager.current
 
     val dark = isSystemInDarkTheme()
     val containerColor = when (selectedOption) {
@@ -218,7 +227,14 @@ fun MealDropdown(
 
     ExposedDropdownMenuBox(
         expanded = expanded,
-        onExpandedChange = { if (enabled) expanded = it }
+        onExpandedChange = {
+            if (enabled) {
+                expanded = it
+                if (!it) {
+                    focusManager.clearFocus()
+                }
+            }
+        }
     ) {
         OutlinedTextField(
             value = selectedOption,
@@ -238,13 +254,21 @@ fun MealDropdown(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(58.dp)
-                .menuAnchor(),
+                .menuAnchor()
+                .onFocusChanged { focusState ->
+                    if (!focusState.isFocused) {
+                        expanded = false
+                    }
+                },
             enabled = enabled
         )
         if (enabled) {
             ExposedDropdownMenu(
                 expanded = expanded,
-                onDismissRequest = { expanded = false },
+                onDismissRequest = {
+                    expanded = false
+                    focusManager.clearFocus()
+                },
             ) {
                 options.forEach { option ->
                     DropdownMenuItem(
@@ -252,6 +276,7 @@ fun MealDropdown(
                         onClick = {
                             onSelectionChange(option)
                             expanded = false
+                            focusManager.clearFocus()
                         }
                     )
                 }

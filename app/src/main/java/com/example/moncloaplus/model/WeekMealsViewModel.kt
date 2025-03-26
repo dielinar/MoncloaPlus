@@ -103,6 +103,7 @@ class WeekMealsViewModel @Inject constructor(
             getStartOfWeek(calendar.time)
         }
         getWeekMeals()
+        _hasChanges.value = false
     }
 
     fun previousWeek() {
@@ -112,6 +113,7 @@ class WeekMealsViewModel @Inject constructor(
             getStartOfWeek(calendar.time)
         }
         getWeekMeals()
+        _hasChanges.value = false
     }
 
     fun setCurrentWeek() {

@@ -22,7 +22,9 @@ import com.example.moncloaplus.R
 import com.example.moncloaplus.model.User
 import com.example.moncloaplus.screens.account_center.AccountCenterViewModel
 import com.example.moncloaplus.screens.admin.export_meals.ExportMealsScreen
+import com.example.moncloaplus.screens.fixes.FixesScreen
 import com.example.moncloaplus.screens.home.EXPORT_MEALS_SCREEN
+import com.example.moncloaplus.screens.home.FIXES_SCREEN
 import com.example.moncloaplus.screens.home.HomeScreen
 import com.example.moncloaplus.screens.home.MEALS_TEMPLATE_SCREEN
 import com.example.moncloaplus.screens.home.RESERVATION_SCREEN
@@ -112,7 +114,7 @@ fun MainScreen(
                         shape = MaterialTheme.shapes.small
                     )
                     NavigationDrawerItem(
-                        icon = { Icon(painter = painterResource(R.drawable.list_alt_24px), contentDescription = null) },
+                        icon = { Icon(painter = painterResource(R.drawable.receipt_long_24px), contentDescription = null) },
                         label = { Text("Plantilla comidas") },
                         selected = currentRoute?.destination?.route == MEALS_TEMPLATE_SCREEN,
                         onClick = {
@@ -127,7 +129,7 @@ fun MainScreen(
                     )
 
                     NavigationDrawerItem(
-                        icon = { Icon(painter = painterResource(R.drawable.bookmark_check_24px), contentDescription = null) },
+                        icon = { Icon(painter = painterResource(R.drawable.bookmark_added_24px), contentDescription = null) },
                         label = { Text("Reservas") },
                         selected = currentRoute?.destination?.route == RESERVATION_SCREEN,
                         onClick = {
@@ -136,7 +138,21 @@ fun MainScreen(
                         },
                         shape = MaterialTheme.shapes.small
                     )
+                    HorizontalDivider(
+                        modifier = Modifier.padding(top = 6.dp, bottom = 6.dp),
+                        thickness = 2.dp
+                    )
 
+                    NavigationDrawerItem(
+                        icon = { Icon(painter = painterResource(R.drawable.handyman_24px__1_), contentDescription = null) },
+                        label = { Text("Arreglos") },
+                        selected = currentRoute?.destination?.route == FIXES_SCREEN,
+                        onClick = {
+                            scope.launch { drawerState.close() }
+                            navController.navigate(FIXES_SCREEN)
+                        },
+                        shape = MaterialTheme.shapes.small
+                    )
                     Spacer(Modifier.weight(1f))
 
                     NavigationDrawerItem(
@@ -198,6 +214,10 @@ fun NavGraphBuilder.mainGraph() {
 
     composable(EXPORT_MEALS_SCREEN) {
         ExportMealsScreen()
+    }
+
+    composable(FIXES_SCREEN) {
+        FixesScreen()
     }
 
 }

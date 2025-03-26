@@ -3,7 +3,6 @@ package com.example.moncloaplus.screens.reservation
 import com.example.moncloaplus.R
 import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Date
 import java.util.Locale
 
 const val PADEL_INDEX = 0
@@ -48,12 +47,6 @@ fun convertMillisToDate(millis: Long): String {
         val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
         formatter.format(calendar.time)
     }
-}
-
-fun convertMillisToDayMonth(millis: Long): String {
-    val date = Date(millis)
-    val format = SimpleDateFormat("dd/MM", Locale.getDefault())
-    return format.format(date)
 }
 
 fun formatHourMinute(hour: Int, minute: Int): String {

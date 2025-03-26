@@ -1,6 +1,5 @@
 package com.example.moncloaplus.screens.reservation.options
 
-import android.annotation.SuppressLint
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -64,16 +63,11 @@ import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Locale
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.IconToggleButton
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
 import com.example.moncloaplus.model.MAX_GYM_PARTICIPANTS
 import com.example.moncloaplus.model.ReservType
 
@@ -141,11 +135,6 @@ fun ReservationCard(
         else -> MaterialTheme.colorScheme.onPrimaryContainer
     }
 
-    val durationText = getDurationText(
-        reservation.inicio.toDate().time,
-        reservation.final.toDate().time
-    )
-
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = if (isPastReservation) 0.dp else 4.dp),
@@ -205,9 +194,14 @@ fun ReservationCard(
                                 enabled = !isCurrentReservation && !isPastReservation,
                                 modifier = Modifier.scale(0.7f).offset(x = (-16).dp),
                                 colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = ReservationColors.greenContainer,
+                                    selectedContainerColor = ReservationColors.greenContainer.copy(0.8f),
                                     selectedLabelColor = ReservationColors.greenContent,
                                     selectedLeadingIconColor = ReservationColors.greenContent
+                                ),
+                                border = FilterChipDefaults.filterChipBorder(
+                                    enabled = !isCurrentReservation && !isPastReservation,
+                                    selected = isParticipating,
+                                    selectedBorderColor = ReservationColors.greenContent
                                 ),
                                 leadingIcon = if (isParticipating) {
                                     {
@@ -338,20 +332,6 @@ fun TimeCard(
 }
 
 @Composable
-fun getDurationText(startTime: Long, endTime: Long): String {
-    val durationMillis = endTime - startTime
-    val totalMinutes = (durationMillis / (1000 * 60)).toInt()
-    val hours = totalMinutes / 60
-    val minutes = totalMinutes % 60
-
-    return when {
-        hours > 0 && minutes > 0 -> "$hours hora${if (hours > 1) "s" else ""} y $minutes minuto${if (minutes > 1) "s" else ""}"
-        hours > 0 -> "$hours hora${if (hours > 1) "s" else ""}"
-        else -> "$minutes minuto${if (minutes > 1) "s" else ""}"
-    }
-}
-
-@Composable
 fun NoteLabel(text: String) {
     Row(modifier = Modifier
         .fillMaxWidth()
@@ -467,30 +447,6 @@ fun MenuOptions(
         }
     }
 
-}
-
-@SuppressLint("DefaultLocale")
-@Composable
-fun CountdownTimer(endTimeMillis: Long) {
-    var timeLeft by remember { mutableLongStateOf(endTimeMillis - System.currentTimeMillis()) }
-
-    LaunchedEffect(key1 = endTimeMillis) {
-        while (timeLeft > 0) {
-            delay(1000)
-            timeLeft = endTimeMillis - System.currentTimeMillis()
-        }
-    }
-
-    val seconds = (timeLeft / 1000) % 60
-    val minutes = (timeLeft / (1000 * 60)) % 60
-    val hours = (timeLeft / (1000 * 60 * 60))
-
-    Text(
-        text = String.format("%02d:%02d:%02d", hours, minutes, seconds),
-        style = MaterialTheme.typography.bodySmall,
-        fontWeight = FontWeight.Bold,
-        color = BadgeDefaults.containerColor
-    )
 }
 
 @Composable

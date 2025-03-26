@@ -24,10 +24,8 @@ import java.time.format.DateTimeFormatter
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun SelectMealsScreen(
-    modifier: Modifier = Modifier,
     viewModel: WeekMealsViewModel = hiltViewModel()
 ) {
-
     val selectedMeals by viewModel.selectedMeals.collectAsState()
     val currentWeekStart by viewModel.currentWeekStart.collectAsState()
     val hasChanges by viewModel.hasChanges.collectAsState()
@@ -53,7 +51,7 @@ fun SelectMealsScreen(
     }
 
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .padding(10.dp)
             .verticalScroll(rememberScrollState()),
