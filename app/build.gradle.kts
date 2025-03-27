@@ -76,6 +76,7 @@ dependencies {
     implementation("com.google.dagger:hilt-android:2.51.1")
     implementation(libs.firebase.dataconnect)
     implementation(libs.androidx.core.i18n)
+    implementation(libs.firebase.storage.ktx)
     kapt("androidx.room:room-compiler:2.6.1")
     kapt("com.google.dagger:hilt-android-compiler:2.51.1")
 

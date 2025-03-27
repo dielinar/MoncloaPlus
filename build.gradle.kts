@@ -5,6 +5,6 @@ plugins {
 
     // Add the dependency for the Google services Gradle plugin
     id("com.google.gms.google-services") version "4.4.2" apply false
-    id("com.android.library") version "8.0.0" apply false
+    id("com.android.library") version "8.0.2" apply false
     id("com.google.dagger.hilt.android") version "2.51.1" apply false
 }

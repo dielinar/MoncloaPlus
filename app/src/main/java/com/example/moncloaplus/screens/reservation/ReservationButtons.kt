@@ -86,8 +86,9 @@ fun ReservationDialog(
     val startTime by viewModel.startTime.collectAsState()
     val endTime by viewModel.endTime.collectAsState()
     val note by viewModel.note.collectAsState()
+    val reservationsByDate by viewModel.reservationsByDate.collectAsState()
 
-    val validationError by remember(newDate, startTime, endTime) {
+    val validationError by remember(newDate, startTime, endTime, reservationsByDate) {
         derivedStateOf { viewModel.getValidationError(index) }
     }
 

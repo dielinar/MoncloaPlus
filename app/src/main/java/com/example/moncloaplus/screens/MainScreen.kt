@@ -62,7 +62,7 @@ fun MainScreen(
                         .verticalScroll(rememberScrollState())
                 ) {
                     Text(
-                        "¡Hola, ${user.firstName} ${user.firstSurname}!",
+                        "¡Hola, ${user.firstName}!",
                         modifier = Modifier.padding(24.dp),
                         style = MaterialTheme.typography.titleLarge
                     )

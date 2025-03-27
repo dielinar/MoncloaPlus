@@ -68,6 +68,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import com.example.moncloaplus.model.MAX_GYM_PARTICIPANTS
 import com.example.moncloaplus.model.ReservType
 
@@ -125,8 +126,7 @@ fun ReservationCard(
 
     val contentColor = when {
         isPastReservation -> ReservationColors.pastContent()
-        isCurrentUser -> MaterialTheme.colorScheme.onTertiaryContainer
-        else -> MaterialTheme.colorScheme.onPrimaryContainer
+        else -> MaterialTheme.colorScheme.onSurface
     }
 
     val dividerColor = when {
@@ -172,12 +172,14 @@ fun ReservationCard(
                             Icon(
                                 painter = painterResource(R.drawable.group_24px),
                                 contentDescription = null,
-                                modifier = Modifier.size(26.dp).padding(end = 6.dp)
+                                modifier = Modifier.size(26.dp).padding(end = 6.dp),
+                                tint = dividerColor
                             )
                             Text(
                                 text = "${numberOfParticipants}/$MAX_GYM_PARTICIPANTS",
                                 style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                color = dividerColor
                             )
                         }
                         if (!isCurrentUser && (isParticipating || canParticipate)) {
@@ -194,14 +196,9 @@ fun ReservationCard(
                                 enabled = !isCurrentReservation && !isPastReservation,
                                 modifier = Modifier.scale(0.7f).offset(x = (-16).dp),
                                 colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = ReservationColors.greenContainer.copy(0.8f),
-                                    selectedLabelColor = ReservationColors.greenContent,
-                                    selectedLeadingIconColor = ReservationColors.greenContent
-                                ),
-                                border = FilterChipDefaults.filterChipBorder(
-                                    enabled = !isCurrentReservation && !isPastReservation,
-                                    selected = isParticipating,
-                                    selectedBorderColor = ReservationColors.greenContent
+                                    selectedContainerColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(0.8f),
+                                    selectedLabelColor = MaterialTheme.colorScheme.primaryContainer,
+                                    selectedLeadingIconColor = MaterialTheme.colorScheme.primaryContainer
                                 ),
                                 leadingIcon = if (isParticipating) {
                                     {
@@ -211,15 +208,13 @@ fun ReservationCard(
                                             modifier = Modifier.size(FilterChipDefaults.IconSize)
                                         )
                                     }
-                                } else {
-                                    null
-                                }
+                                } else null
                             )
                         }
                     }
                 }
                 if (reservation.nota.isNotBlank()) {
-                    HorizontalDivider(color = dividerColor, thickness = Dp.Hairline)
+                    HorizontalDivider(color = dividerColor.copy(0.3f), thickness = 1.dp)
                     NoteLabel(reservation.nota)
                 }
             }
@@ -229,7 +224,8 @@ fun ReservationCard(
                     currentUser = currentUser,
                     modifier = Modifier.align(Alignment.TopEnd),
                     reservation = reservation,
-                    viewModel = viewModel
+                    viewModel = viewModel,
+                    moreOptionsColor = dividerColor
                 )
             if (isCurrentReservation) {
                 Row(
@@ -323,8 +319,7 @@ fun TimeCard(
         {
             Text(
                 text = text,
-                style = if (isStartTime) MaterialTheme.typography.titleMedium
-                        else MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -350,7 +345,8 @@ fun MenuOptions(
     currentUser: User,
     modifier: Modifier,
     reservation: Reservation,
-    viewModel: ReservationViewModel
+    viewModel: ReservationViewModel,
+    moreOptionsColor: Color
 ) {
     var expanded by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -358,7 +354,7 @@ fun MenuOptions(
 
     Box(modifier = modifier) {
         IconButton(onClick = { expanded = !expanded }) {
-            Icon(Icons.Default.MoreVert, contentDescription = "More options")
+            Icon(Icons.Default.MoreVert, "More options", tint = moreOptionsColor)
         }
         DropdownMenu(
             expanded = expanded,
