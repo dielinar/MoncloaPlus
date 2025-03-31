@@ -216,6 +216,4 @@ class ReservationServiceImpl @Inject constructor(
         reservationRef.update("participantes", updatedParticipants).await()
     }
 
-
-
 }

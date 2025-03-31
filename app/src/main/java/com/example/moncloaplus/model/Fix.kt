@@ -27,3 +27,19 @@ data class Fix (
 /*
 https://chat.deepseek.com/a/chat/s/a8d06207-aae6-48b6-acdc-306abb564eb6
  */
+
+/*
+Antigua regla Storage:
+rules_version = '2';
+
+// Craft rules based on data in your Firestore database
+// allow write: if firestore.get(
+//    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
+ */

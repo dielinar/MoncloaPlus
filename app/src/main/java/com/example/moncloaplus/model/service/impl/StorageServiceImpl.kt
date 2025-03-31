@@ -1,7 +1,9 @@
 package com.example.moncloaplus.model.service.impl
 
 import android.content.ContentValues.TAG
+import android.net.Uri
 import android.util.Log
+import com.example.moncloaplus.model.UploadResult
 import com.example.moncloaplus.model.User
 import com.example.moncloaplus.model.WeekMeals
 import com.example.moncloaplus.model.service.StorageService
@@ -10,7 +12,10 @@ import com.example.moncloaplus.utils.WEEK_DAYS
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.toObject
+import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date

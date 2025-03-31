@@ -208,12 +208,12 @@ fun ReservationDialog(
                     modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp, end = 24.dp),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    TextButton(onClick = onDismiss) { Text("Cancelar", color = MaterialTheme.colorScheme.tertiary, fontSize = 16.sp) }
+                    TextButton(onClick = onDismiss) { Text("Cancelar", fontSize = 16.sp) }
                     TextButton(
                         enabled = validationError == null,
                         onClick = { onConfirm() }
                     ) {
-                        Text("Guardar", color = MaterialTheme.colorScheme.tertiary, fontSize = 16.sp)
+                        Text("Guardar", fontSize = 16.sp)
                     }
                 }
             }
@@ -270,8 +270,8 @@ fun NewReservationButton(
 
     if (showDialog) {
         ReservationDialog(
-            type,
-            viewModel,
+            index = type,
+            viewModel = viewModel,
             onDismiss = {
                 viewModel.resetValues()
                 showDialog = false
@@ -636,12 +636,12 @@ fun EditReservationDialog(
                     modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp, end = 24.dp),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    TextButton(onClick = onDismiss) { Text("Cancelar", color = MaterialTheme.colorScheme.tertiary, fontSize = 16.sp) }
+                    TextButton(onClick = onDismiss) { Text("Cancelar", fontSize = 16.sp) }
                     TextButton(
                         enabled = validationError == null,
                         onClick = { onConfirm() }
                     ) {
-                        Text("Guardar cambios", color = MaterialTheme.colorScheme.tertiary, fontSize = 16.sp)
+                        Text("Guardar cambios", fontSize = 16.sp)
                     }
                 }
             }

@@ -1,7 +1,9 @@
 package com.example.moncloaplus.model
 
 import com.example.moncloaplus.SnackbarManager
+import com.example.moncloaplus.model.service.AccountService
 import com.example.moncloaplus.model.service.ReservationService
+import com.example.moncloaplus.model.service.StorageService
 import com.example.moncloaplus.model.service.impl.AccountServiceImpl
 import com.example.moncloaplus.model.service.impl.StorageServiceImpl
 import com.example.moncloaplus.screens.PlusViewModel
@@ -20,8 +22,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ReservationViewModel @Inject constructor(
     private val reservationService: ReservationService,
-    private val accountService: AccountServiceImpl,
-    private val storageService: StorageServiceImpl
+    private val accountService: AccountService,
+    private val storageService: StorageService
 ): PlusViewModel() {
 
     private val _newDate = MutableStateFlow(System.currentTimeMillis())
@@ -112,6 +114,7 @@ class ReservationViewModel @Inject constructor(
         updateStartTime(getDefaultStartTime())
         updateEndTime(getDefaultEndTime(_startTime.value))
         updateNote("")
+        _editingReservation.value = null
     }
 
     fun deleteReservation(reservation: Reservation) {
