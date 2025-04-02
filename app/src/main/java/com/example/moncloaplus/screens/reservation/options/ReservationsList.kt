@@ -351,6 +351,9 @@ fun MenuOptions(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf(false) }
 
+    val currentTime = System.currentTimeMillis()
+    val isPastReservation = reservation.final.toDate().time < currentTime
+
     Box(modifier = modifier) {
         IconButton(onClick = { expanded = !expanded }) {
             Icon(Icons.Default.MoreVert, "More options", tint = moreOptionsColor)
@@ -359,16 +362,18 @@ fun MenuOptions(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            DropdownMenuItem(
-                text = { Text("Editar") },
-                leadingIcon = { Icon(Icons.Filled.Edit, contentDescription = "Editar") },
-                onClick = {
-                    if (currentUser.isAdmin()) viewModel.adminLoadReservationForEditing(reservation.owner!!.id, reservation.id)
-                    else viewModel.loadReservationForEditing(reservation.id)
-                    expanded = false
-                    showEditDialog = true
-                }
-            )
+            if (!isPastReservation) {
+                DropdownMenuItem(
+                    text = { Text("Editar") },
+                    leadingIcon = { Icon(Icons.Filled.Edit, contentDescription = "Editar") },
+                    onClick = {
+                        if (currentUser.isAdmin()) viewModel.adminLoadReservationForEditing(reservation.owner!!.id, reservation.id)
+                        else viewModel.loadReservationForEditing(reservation.id)
+                        expanded = false
+                        showEditDialog = true
+                    }
+                )
+            }
             DropdownMenuItem(
                 text = { Text("Eliminar") },
                 leadingIcon = { Icon(painterResource(R.drawable.delete_24px), "Eliminar")},

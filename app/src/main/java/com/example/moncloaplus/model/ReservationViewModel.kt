@@ -4,8 +4,6 @@ import com.example.moncloaplus.SnackbarManager
 import com.example.moncloaplus.model.service.AccountService
 import com.example.moncloaplus.model.service.ReservationService
 import com.example.moncloaplus.model.service.StorageService
-import com.example.moncloaplus.model.service.impl.AccountServiceImpl
-import com.example.moncloaplus.model.service.impl.StorageServiceImpl
 import com.example.moncloaplus.screens.PlusViewModel
 import com.example.moncloaplus.screens.reservation.getDefaultEndTime
 import com.example.moncloaplus.screens.reservation.getDefaultStartTime
@@ -97,8 +95,6 @@ class ReservationViewModel @Inject constructor(
             )
             val newReservation = reservationService.createReservation(reservation)
 
-            SnackbarManager.showMessage("Reserva creada correctamente.")
-
             addToUserReservations(newReservation)
             addToReservationsByDate(newReservation)
             addParticipant(newReservation, currentUser!!.id)
@@ -106,6 +102,8 @@ class ReservationViewModel @Inject constructor(
             resetValues()
 
             _isLoading.value = false
+
+            SnackbarManager.showMessage("Reserva creada correctamente.")
         }
     }
 
@@ -121,11 +119,11 @@ class ReservationViewModel @Inject constructor(
         launchCatching {
             _isLoading.value = true
             reservationService.deleteReservation(reservation.id)
-            SnackbarManager.showMessage("Reserva eliminada correctamente.")
 
             removeFromUserReservations(reservation.id)
             removeFromReservationsByDate(reservation.id, reservation.tipo.ordinal)
             _isLoading.value = false
+            SnackbarManager.showMessage("Reserva eliminada correctamente.")
         }
     }
 
@@ -133,19 +131,19 @@ class ReservationViewModel @Inject constructor(
         launchCatching {
             _isLoading.value = true
             reservationService.adminDelete(reservation.owner!!.id, reservation.id)
-            SnackbarManager.showMessage("Reserva eliminada correctamente.")
 
             removeFromUserReservations(reservation.id)
             removeFromReservationsByDate(reservation.id, reservation.tipo.ordinal)
             _isLoading.value = false
+            SnackbarManager.showMessage("Reserva eliminada correctamente.")
         }
     }
 
     fun fetchUserReservations(type: Int, dateMillis: Long) {
         launchCatching {
             _isLoading.value = true
-            val reservationList = reservationService.getUserReservations(type, dateMillis)
-            val sortedList = reservationList.sortedBy { it.inicio }
+            val reservationsList = reservationService.getUserReservations(type, dateMillis)
+            val sortedList = reservationsList.sortedBy { it.inicio }
             val normalizedMap = sortedList.groupBy { normalizeDate(it.inicio.toDate().time) }
 
             val normalizedDate = normalizeDate(dateMillis)

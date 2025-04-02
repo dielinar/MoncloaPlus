@@ -11,7 +11,7 @@ data class Fix (
     val localizacion: String = "",
     val descripcion: String = "",
     val estado: FixState = FixState.PENDING,
-    val imagen: FixImage = FixImage(),
+    var imagen: FixImage = FixImage(),
 
     @get:Exclude
     var owner: User? = null

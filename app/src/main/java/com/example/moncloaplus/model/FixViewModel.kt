@@ -5,14 +5,13 @@ import com.example.moncloaplus.SnackbarManager
 import com.example.moncloaplus.model.service.AccountService
 import com.example.moncloaplus.model.service.FixService
 import com.example.moncloaplus.model.service.StorageService
-import com.example.moncloaplus.model.service.impl.AccountServiceImpl
 import com.example.moncloaplus.screens.PlusViewModel
 import com.google.firebase.Timestamp
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -37,7 +36,7 @@ class FixViewModel @Inject constructor(
     fun updateDescription(newDescription: String) { _description.value = newDescription }
     fun updateImageUri(newUri: Uri) { _imageUri.value = newUri }
 
-    fun addFix() {
+    fun createFix() {
         launchCatching {
             _isLoading.value = true
 
@@ -52,28 +51,40 @@ class FixViewModel @Inject constructor(
                 imagen = Fix.FixImage(),
                 owner = currentUser
             )
-            val newFix = fixService.addFix(fix, imageUri.value)
-
-            SnackbarManager.showMessage("Arreglo creado correctamente.")
+            val newFix = fixService.createFix(fix, imageUri.value)
 
             addToUserFixes(newFix)
-
+            _isLoading.value = false
             resetValues()
+            SnackbarManager.showMessage("Arreglo creado correctamente.")
+        }
+    }
+
+    fun resetValues() {
+        updateDescription("")
+        _imageUri.value = null
+    }
+
+    fun fetchUserFixes(state: Int) {
+        launchCatching {
+            _isLoading.value = true
+
+            val fixesList = fixService.getUserFixes(state)
+            _userFixes.value = _userFixes.value.toMutableMap().apply {
+                put(state, fixesList)
+            }
 
             _isLoading.value = false
         }
     }
 
-    fun resetValues() {
-        _description.value = ""
-        _imageUri.value = null
-    }
-
     private fun addToUserFixes(fix: Fix) {
         val stateKey = fix.estado.ordinal
         _userFixes.value = _userFixes.value.toMutableMap().apply {
-            val currentList = this[stateKey] ?: emptyList()
-            put(stateKey, (currentList + fix).sortedBy { it.fecha })
+            val updatedFixes = get(stateKey)?.toMutableList() ?: mutableListOf()
+            updatedFixes.add(fix)
+            updatedFixes.sortByDescending { it.fecha }
+            put(stateKey, updatedFixes)
         }
     }
 
