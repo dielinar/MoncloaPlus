@@ -78,6 +78,17 @@ class FixViewModel @Inject constructor(
         }
     }
 
+    fun deleteFix(fix: Fix) {
+        launchCatching {
+            _isLoading.value = true
+            fixService.deleteFix(fix)
+
+            removeFromUserFixes(fix.id, fix.estado.ordinal)
+            _isLoading.value = false
+            SnackbarManager.showMessage("Arreglo eliminado correctamente.")
+        }
+    }
+
     private fun addToUserFixes(fix: Fix) {
         val stateKey = fix.estado.ordinal
         _userFixes.value = _userFixes.value.toMutableMap().apply {
@@ -85,6 +96,13 @@ class FixViewModel @Inject constructor(
             updatedFixes.add(fix)
             updatedFixes.sortByDescending { it.fecha }
             put(stateKey, updatedFixes)
+        }
+    }
+
+    private fun removeFromUserFixes(fixId: String, state: Int) {
+        _userFixes.value = _userFixes.value.toMutableMap().apply {
+            val updatedFixes = get(state)?.filterNot { it.id == fixId } ?: emptyList()
+            put(state, updatedFixes)
         }
     }
 

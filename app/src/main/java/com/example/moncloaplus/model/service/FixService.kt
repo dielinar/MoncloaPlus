@@ -7,4 +7,5 @@ interface FixService {
     suspend fun createFix(fix: Fix, imageUri: Uri?): Fix
     suspend fun getFix(fixId: String): Fix?
     suspend fun getUserFixes(state: Int): List<Fix>
+    suspend fun deleteFix(fix: Fix)
 }

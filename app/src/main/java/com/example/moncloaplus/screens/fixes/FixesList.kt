@@ -21,13 +21,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,7 +55,8 @@ import java.text.SimpleDateFormat
 
 @Composable
 fun FixesList(
-    fixesList: List<Fix>,
+    viewModel: FixViewModel,
+    fixesList: List<Fix>
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -60,7 +64,7 @@ fun FixesList(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(fixesList) { fix ->
-            FixCard(fix)
+            FixCard(viewModel, fix)
         }
     }
 }
@@ -68,6 +72,7 @@ fun FixesList(
 @SuppressLint("SimpleDateFormat")
 @Composable
 fun FixCard(
+    viewModel: FixViewModel,
     fix: Fix
 ) {
     val stateContainerColor = when (fix.estado) {
@@ -79,10 +84,11 @@ fun FixCard(
     val stateContentColor = MaterialTheme.colorScheme.scrim
     var showImageDialog by remember { mutableStateOf(false) }
     var isImageLoading by remember { mutableStateOf(true) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(6.dp),
+        elevation = CardDefaults.cardElevation(4.dp),
         shape = MaterialTheme.shapes.extraSmall
     ) {
         Column(modifier = Modifier.background(Color.White)) {
@@ -125,10 +131,10 @@ fun FixCard(
             }
 
             Row(
-                modifier = Modifier.padding(8.dp),
+                modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(painterResource(R.drawable.notes_24px), contentDescription = null, tint = stateContentColor.copy(0.5f))
+                Icon(painterResource(R.drawable.notes_24px), contentDescription = null, tint = stateContentColor)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = fix.descripcion,
@@ -140,25 +146,29 @@ fun FixCard(
             }
 
             Row(
-                modifier = Modifier.padding(8.dp),
+                modifier = Modifier.padding(start = 8.dp, top = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Filled.LocationOn, contentDescription = null, tint = stateContentColor.copy(0.5f))
+                Icon(Icons.Filled.LocationOn, contentDescription = null, tint = Color.Gray)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(text = fix.localizacion, color = stateContentColor, style = MaterialTheme.typography.bodyMedium)
+                Text(text = fix.localizacion, color = Color.Gray, style = MaterialTheme.typography.bodyMedium)
             }
 
             Row(
-                modifier = Modifier.padding(8.dp),
+                modifier = Modifier.padding(start = 8.dp, top = 2.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Filled.DateRange, contentDescription = null, tint = stateContentColor.copy(0.5f))
+                Icon(Icons.Filled.DateRange, contentDescription = null, tint = Color.Gray)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = SimpleDateFormat("dd/MM/yyyy, HH:mm").format(fix.fecha.toDate()),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = stateContentColor
+                    color = Color.Gray
                 )
+                Spacer(modifier = Modifier.weight(1f))
+                IconButton(onClick = { showDeleteDialog = true }) {
+                    Icon(painterResource(R.drawable.delete_24px), "Eliminar reserva", tint = Color.Gray)
+                }
             }
         }
     }
@@ -174,11 +184,30 @@ fun FixCard(
                 AsyncImage(
                     model = fix.imagen.url,
                     contentDescription = "Imagen ampliada",
-                    modifier = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.extraSmall),
+                    modifier = Modifier.fillMaxWidth(),
                     contentScale = ContentScale.Fit
                 )
             }
         }
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            icon = { Icon(painterResource(R.drawable.delete_24px), null) },
+            title = { Text("Eliminar arreglo") },
+            text = { Text("¿Estás seguro de eliminar el arreglo?") },
+            confirmButton = {
+                TextButton(
+                    onClick = { viewModel.deleteFix(fix) }
+                ) { Text("Sí, eliminar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Atrás")
+                }
+            }
+        )
     }
 
 }

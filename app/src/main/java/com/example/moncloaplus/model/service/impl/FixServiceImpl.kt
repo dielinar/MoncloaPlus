@@ -108,6 +108,24 @@ class FixServiceImpl @Inject constructor(
         }
     }
 
+    override suspend fun deleteFix(fix: Fix) {
+        try {
+            fix.imagen.path.takeIf { it.isNotEmpty() }?.let { imagePath ->
+                try {
+                    storage.reference.child(imagePath).delete().await()
+                    Log.d("Firebase Storage", "Imagen eliminada correctamente: $imagePath")
+                } catch (e: Exception) {
+                    Log.e("Firebase Storage", "Error al eliminar la imagen", e)
+                }
+            }
+
+            fixesCollection.document(fix.id).delete().await()
+            Log.d("Firestore", "Arreglo eliminado correctamente: ${fix.id}")
+        } catch (e: Exception) {
+            Log.e("Firestore", "Error al eliminar el arreglo", e)
+        }
+    }
+
     private suspend fun uploadImage(userId: String, fixId: String, uri: Uri): UploadResult {
         val storagePath = "users/$userId/fixes/$fixId"
         val storageRef = storage.reference.child(storagePath)

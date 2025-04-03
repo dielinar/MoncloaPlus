@@ -80,7 +80,7 @@ fun FixesScreen(
                         textAlign = TextAlign.Center,
                         fontStyle = FontStyle.Italic
                     )
-                } else FixesList(fixesList)
+                } else FixesList(fixViewModel, fixesList)
             }
         }
     }
