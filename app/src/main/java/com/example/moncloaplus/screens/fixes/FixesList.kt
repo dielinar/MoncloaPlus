@@ -16,11 +16,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -28,10 +27,10 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,18 +44,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import com.example.moncloaplus.R
 import com.example.moncloaplus.model.FixState
+import com.example.moncloaplus.model.User
 import java.text.SimpleDateFormat
 
 @Composable
 fun FixesList(
     viewModel: FixViewModel,
-    fixesList: List<Fix>
+    fixesList: List<Fix>,
+    currentUser: User
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -64,7 +66,7 @@ fun FixesList(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(fixesList) { fix ->
-            FixCard(viewModel, fix)
+            FixCard(viewModel, fix, currentUser)
         }
     }
 }
@@ -73,7 +75,8 @@ fun FixesList(
 @Composable
 fun FixCard(
     viewModel: FixViewModel,
-    fix: Fix
+    fix: Fix,
+    currentUser: User
 ) {
     val stateContainerColor = when (fix.estado) {
         FixState.PENDING -> FixesColors.pendingContainer
@@ -83,6 +86,7 @@ fun FixCard(
 
     val stateContentColor = MaterialTheme.colorScheme.scrim
     var showImageDialog by remember { mutableStateOf(false) }
+    var showEditDialog by remember { mutableStateOf(false) }
     var isImageLoading by remember { mutableStateOf(true) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
@@ -149,7 +153,7 @@ fun FixCard(
                 modifier = Modifier.padding(start = 8.dp, top = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Filled.LocationOn, contentDescription = null, tint = Color.Gray)
+                Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color.Gray)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(text = fix.localizacion, color = Color.Gray, style = MaterialTheme.typography.bodyMedium)
             }
@@ -166,8 +170,19 @@ fun FixCard(
                     color = Color.Gray
                 )
                 Spacer(modifier = Modifier.weight(1f))
-                IconButton(onClick = { showDeleteDialog = true }) {
-                    Icon(painterResource(R.drawable.delete_24px), "Eliminar reserva", tint = Color.Gray)
+
+                if (currentUser.isMaintainer()) {
+
+                } else {
+                    IconButton(onClick = {
+                        viewModel.loadFixForEditing(fix.id)
+                        showEditDialog = true
+                    }) {
+                        Icon(Icons.Filled.Edit, "Editar arreglo", tint = Color.Gray)
+                    }
+                    IconButton(onClick = { showDeleteDialog = true }) {
+                        Icon(painterResource(R.drawable.delete_24px), "Eliminar arreglo", tint = Color.Gray)
+                    }
                 }
             }
         }
@@ -208,6 +223,45 @@ fun FixCard(
                 }
             }
         )
+    }
+
+    if (showEditDialog) {
+        val editingFix by viewModel.editingFix.collectAsState()
+
+        if (editingFix == null) {
+            AlertDialog(
+                onDismissRequest = {},
+                title = { Text("Cargando arreglo", textAlign = TextAlign.Center) },
+                text = {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = {showEditDialog = false}) {
+                        Text("Cancelar")
+                    }
+                }
+            )
+        } else {
+            EditFixDialog(
+                currentUser = currentUser,
+                viewModel = viewModel,
+                onDismiss = {
+                    viewModel.resetValues()
+                    showEditDialog = false
+                },
+                onConfirm = {
+                    viewModel.editFix()
+                    showEditDialog = false
+                }
+            )
+        }
     }
 
 }

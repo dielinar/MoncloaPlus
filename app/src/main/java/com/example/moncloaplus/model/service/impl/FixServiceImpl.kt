@@ -126,6 +126,80 @@ class FixServiceImpl @Inject constructor(
         }
     }
 
+    override suspend fun editFix(fix: Fix, imageUri: Uri?) {
+        try {
+            var updatedImage = fix.imagen
+
+            if (imageUri != null) {
+                if (fix.imagen.path.isNotEmpty()) {
+                    try {
+                        storage.reference.child(fix.imagen.path).delete().await()
+                    } catch (e: Exception) {
+                        Log.e("Firebase Storage", "Error al eliminar imagen anterior", e)
+                    }
+                }
+
+                val uploadResult = uploadImage(userId, fix.id, imageUri)
+                updatedImage = Fix.FixImage(
+                    nombreArchivo = uploadResult.fileName,
+                    url = uploadResult.downloadUrl,
+                    path = uploadResult.path,
+                    tamano = uploadResult.size
+                )
+            }
+            val updatedFix = fix.copy(imagen = updatedImage)
+
+            fixesCollection.document(fix.id).set(updatedFix).await()
+            Log.d("Firestore", "Arreglo editado correctamente: ${fix.id}")
+        } catch (e: Exception) {
+            Log.e("Firestore", "Error al editar el arreglo", e)
+        }
+    }
+
+    override suspend fun getAllFixesByState(state: Int): List<Fix> = coroutineScope {
+        try {
+            val users = usersCollection.get().await().documents
+            val allFixesDeferred = users.map { userDoc ->
+                async {
+                    val userId = userDoc.id
+                    val fixesSnapshot = usersCollection.document(userId)
+                        .collection("fixes")
+                        .whereEqualTo("estado", FixState.entries[state].name)
+                        .orderBy("fecha", Query.Direction.DESCENDING)
+                        .get()
+                        .await()
+
+                    fixesSnapshot.documents.mapNotNull { doc ->
+                        doc.toObject(Fix::class.java)?.copy(id = doc.id)?.also { fix ->
+                            val user = storageService.getUser(userId)
+                            fix.owner = user
+                            if (fix.imagen.path.isNotEmpty()) {
+                                fix.imagen = fix.imagen.copy(
+                                    url = getImageUrl(fix.imagen.path)
+                                )
+                            }
+                        }
+
+                    }
+                }
+            }
+            allFixesDeferred.awaitAll().flatten()
+        } catch(e: Exception) {
+            Log.e("Firestore", "Error al obtener todos los arreglos", e)
+            emptyList()
+        }
+    }
+
+    override suspend fun updateFixState(fix: Fix, newState: FixState) {
+        try {
+            val updatedFix = fix.copy(estado = newState)
+            fixesCollection.document(fix.id).set(updatedFix).await()
+            Log.d("Firestore", "Estado actualizado: ${fix.id} -> $newState")
+        } catch(e: Exception) {
+            Log.e("Firestore", "Error al actualizar estado del arreglo", e)
+        }
+    }
+
     private suspend fun uploadImage(userId: String, fixId: String, uri: Uri): UploadResult {
         val storagePath = "users/$userId/fixes/$fixId"
         val storageRef = storage.reference.child(storagePath)

@@ -8,7 +8,6 @@ import com.example.moncloaplus.model.service.StorageService
 import com.example.moncloaplus.screens.PlusViewModel
 import com.google.firebase.Timestamp
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,14 +23,20 @@ class FixViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    private val _userFixes = MutableStateFlow<Map<Int, List<Fix>>>(emptyMap())
-    val userFixes: StateFlow<Map<Int, List<Fix>>> = _userFixes.asStateFlow()
-
     private val _description = MutableStateFlow("")
     val description: StateFlow<String> = _description.asStateFlow()
 
     private val _imageUri = MutableStateFlow<Uri?>(null)
     val imageUri: StateFlow<Uri?> = _imageUri.asStateFlow()
+
+    private val _editingFix = MutableStateFlow<Fix?>(null)
+    val editingFix = _editingFix.asStateFlow()
+
+    private val _userFixes = MutableStateFlow<Map<Int, List<Fix>>>(emptyMap())
+    val userFixes: StateFlow<Map<Int, List<Fix>>> = _userFixes.asStateFlow()
+
+    private val _allFixes = MutableStateFlow<Map<Int, List<Fix>>>(emptyMap())
+    val allFixes: StateFlow<Map<Int, List<Fix>>> = _allFixes.asStateFlow()
 
     fun updateDescription(newDescription: String) { _description.value = newDescription }
     fun updateImageUri(newUri: Uri) { _imageUri.value = newUri }
@@ -60,9 +65,52 @@ class FixViewModel @Inject constructor(
         }
     }
 
+    fun deleteFix(fix: Fix) {
+        launchCatching {
+            _isLoading.value = true
+            fixService.deleteFix(fix)
+
+            removeFromUserFixes(fix.id, fix.estado.ordinal)
+            _isLoading.value = false
+            SnackbarManager.showMessage("Arreglo eliminado correctamente.")
+        }
+    }
+
+    fun editFix() {
+        launchCatching {
+            _isLoading.value = true
+
+            _editingFix.value?.let { original ->
+                val updatedFix = original.copy(
+                    fecha = Timestamp.now(),
+                    descripcion = _description.value
+                )
+                fixService.editFix(updatedFix, _imageUri.value)
+                SnackbarManager.showMessage("Arreglo editado correctamente.")
+
+                fetchUserFixes(updatedFix.estado.ordinal)
+            }
+
+            resetValues()
+            _isLoading.value = false
+        }
+    }
+
+    fun loadFixForEditing(fixId: String) {
+        launchCatching {
+            val fix = fixService.getFix(fixId)
+            fix?.let {
+                _editingFix.value = it
+                _description.value = it.descripcion
+                _imageUri.value = it.imagen.url.takeIf { url -> url.isNotBlank() }?.let { url -> Uri.parse(url) }
+            }
+        }
+    }
+
     fun resetValues() {
         updateDescription("")
         _imageUri.value = null
+        _editingFix.value = null
     }
 
     fun fetchUserFixes(state: Int) {
@@ -78,14 +126,42 @@ class FixViewModel @Inject constructor(
         }
     }
 
-    fun deleteFix(fix: Fix) {
+    fun fetchAllFixes(state: Int) {
         launchCatching {
             _isLoading.value = true
-            fixService.deleteFix(fix)
-
-            removeFromUserFixes(fix.id, fix.estado.ordinal)
+            val fixesList = fixService.getAllFixesByState(state)
+            _allFixes.value = _allFixes.value.toMutableMap().apply {
+                put(state, fixesList)
+            }
             _isLoading.value = false
-            SnackbarManager.showMessage("Arreglo eliminado correctamente.")
+        }
+    }
+
+    private fun moveFixBetweenStates(fix: Fix, oldState: Int, newState: Int) {
+        _allFixes.value = _allFixes.value.toMutableMap().apply {
+            val updatedOldList = get(oldState)?.filterNot { it.id == fix.id } ?: emptyList()
+            put(oldState, updatedOldList)
+
+            val updatedNewList = (get(newState)?.toMutableList() ?: mutableListOf()).apply {
+                add(fix)
+                sortByDescending { it.fecha }
+            }
+            put(newState, updatedNewList)
+        }
+    }
+
+    fun updateFixState(fix: Fix, newState: FixState) {
+        launchCatching {
+            _isLoading.value = true
+            val oldState = fix.estado.ordinal
+
+            val updatedFix = fix.copy(estado = newState)
+            fixService.updateFixState(updatedFix, newState)
+
+            moveFixBetweenStates(updatedFix, oldState, newState.ordinal)
+
+            _isLoading.value = false
+            SnackbarManager.showMessage("Estado actualizado correctamente.")
         }
     }
 

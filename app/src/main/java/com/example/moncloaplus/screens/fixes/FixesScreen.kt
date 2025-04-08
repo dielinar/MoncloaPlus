@@ -13,7 +13,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -80,7 +79,7 @@ fun FixesScreen(
                         textAlign = TextAlign.Center,
                         fontStyle = FontStyle.Italic
                     )
-                } else FixesList(fixViewModel, fixesList)
+                } else FixesList(fixViewModel, fixesList, currentUser)
             }
         }
     }

@@ -1,7 +1,7 @@
 package com.example.moncloaplus.model
 
 enum class UserRole {
-    NORMAL, VOCAL, ADMIN, DIRECCION, ESTUDIOS, DECANATO, CLUB, GERENCIA
+    NORMAL, VOCAL, ADMIN, DIRECCION, ESTUDIOS, DECANATO, CLUB, GERENCIA, MANTENIMIENTO
 }
 
 data class User (
@@ -26,6 +26,10 @@ data class User (
 
     fun isAdmin(): Boolean {
         return role == UserRole.ADMIN || role == UserRole.GERENCIA
+    }
+
+    fun isMaintainer(): Boolean {
+        return role == UserRole.MANTENIMIENTO
     }
 
 }
