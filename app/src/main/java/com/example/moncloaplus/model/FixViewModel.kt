@@ -137,19 +137,6 @@ class FixViewModel @Inject constructor(
         }
     }
 
-    private fun moveFixBetweenStates(fix: Fix, oldState: Int, newState: Int) {
-        _allFixes.value = _allFixes.value.toMutableMap().apply {
-            val updatedOldList = get(oldState)?.filterNot { it.id == fix.id } ?: emptyList()
-            put(oldState, updatedOldList)
-
-            val updatedNewList = (get(newState)?.toMutableList() ?: mutableListOf()).apply {
-                add(fix)
-                sortByDescending { it.fecha }
-            }
-            put(newState, updatedNewList)
-        }
-    }
-
     fun updateFixState(fix: Fix, newState: FixState) {
         launchCatching {
             _isLoading.value = true
@@ -162,6 +149,19 @@ class FixViewModel @Inject constructor(
 
             _isLoading.value = false
             SnackbarManager.showMessage("Estado actualizado correctamente.")
+        }
+    }
+
+    private fun moveFixBetweenStates(fix: Fix, oldState: Int, newState: Int) {
+        _allFixes.value = _allFixes.value.toMutableMap().apply {
+            val updatedOldList = get(oldState)?.filterNot { it.id == fix.id } ?: emptyList()
+            put(oldState, updatedOldList)
+
+            val cleanedNewList = get(newState)?.filterNot { it.id == fix.id }?.toMutableList() ?: mutableListOf()
+            cleanedNewList.add(fix)
+            cleanedNewList.sortByDescending { it.fecha }
+
+            put(newState, cleanedNewList)
         }
     }
 

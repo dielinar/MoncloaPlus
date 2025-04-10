@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -30,6 +31,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -47,6 +49,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -61,7 +65,6 @@ import com.example.moncloaplus.R
 import com.example.moncloaplus.model.FixState
 import com.example.moncloaplus.model.FixViewModel
 import com.example.moncloaplus.model.User
-import kotlin.math.exp
 
 @Composable
 fun FixDialog(
@@ -159,12 +162,13 @@ fun FixDialog(
                 ) {
                     TextButton(onClick = onDismiss, enabled = !isLoading) { Text("Cancelar", fontSize = 16.sp) }
                     TextButton(
-                        onClick = { viewModel.createFix() },
+                        onClick = {
+                            viewModel.createFix()
+                            onDismiss()
+                        },
                         enabled = !isLoading && !descriptionError
                     ) {
-                        if (isLoading) {
-                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                        } else Text("Guardar", fontSize = 16.sp)
+                        Text("Guardar", fontSize = 16.sp)
                     }
                 }
             }
@@ -199,10 +203,6 @@ fun FixesSegmentedButton(
                 },
                 selected = isSelected,
                 label = { Text(label) },
-//                colors = SegmentedButtonDefaults.colors(
-//                    activeContainerColor = FIXES_CONTAINER_COLORS[index],
-//                    activeContentColor = MaterialTheme.colorScheme.scrim
-//                )
             )
         }
     }
@@ -225,10 +225,7 @@ fun NewFixButton(
         FixDialog(
             currentUser = currentUser,
             viewModel = viewModel,
-            onDismiss = {
-                viewModel.resetValues()
-                showDialog = false
-            }
+            onDismiss = { showDialog = false }
         )
     }
 
@@ -353,36 +350,63 @@ fun StateDropdown(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    val options = FixState.entries
-    val selectedLabel = currentState.name
+    val options = FIXES_STATES_NAMES
+    val selectedLabel = options.getOrNull(currentState.ordinal) ?: currentState.name
+    val focusManager = LocalFocusManager.current
+
+    val stateBorderColor = when (currentState) {
+        FixState.PENDING -> FixesColors.pendingContainer
+        FixState.IN_PROGRESS -> FixesColors.inProgressContainer
+        else -> FixesColors.fixedContainer
+    }
 
     ExposedDropdownMenuBox(
+        modifier = Modifier.scale(0.9f),
         expanded = expanded,
-        onExpandedChange = { expanded = it }
+        onExpandedChange = {
+            expanded = it
+            if (!it) focusManager.clearFocus()
+        }
     ) {
         OutlinedTextField(
             value = selectedLabel,
             onValueChange = {},
             readOnly = true,
-            label = { Text("Estado") },
+            label = { Text("Estado", fontSize = 12.sp, color = Color.Gray) },
             textStyle = TextStyle(
-                textAlign = TextAlign.Center
+                fontSize = 14.sp,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.scrim
             ),
             modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor(),
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) }
+                .height(54.dp)
+                .width(130.dp)
+                .menuAnchor()
+                .onFocusChanged { focusState ->
+                    if (!focusState.isFocused) {
+                        expanded = false
+                    }
+                },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedBorderColor = stateBorderColor,
+                focusedBorderColor = stateBorderColor
+            )
         )
         ExposedDropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false }
+            onDismissRequest = {
+                expanded = false
+                focusManager.clearFocus()
+            }
         ) {
-            options.forEach{ option ->
+            options.forEachIndexed { index, label ->
                 DropdownMenuItem(
-                    text = { Text(option.name) },
+                    text = { Text(label) },
                     onClick = {
-                        onStateChange(option)
+                        onStateChange(FixState.entries[index])
                         expanded = false
+                        focusManager.clearFocus()
                     }
                 )
             }

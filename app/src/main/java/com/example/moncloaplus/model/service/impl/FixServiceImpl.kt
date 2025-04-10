@@ -192,8 +192,12 @@ class FixServiceImpl @Inject constructor(
 
     override suspend fun updateFixState(fix: Fix, newState: FixState) {
         try {
-            val updatedFix = fix.copy(estado = newState)
-            fixesCollection.document(fix.id).set(updatedFix).await()
+            usersCollection.document(fix.owner!!.id)
+                .collection("fixes")
+                .document(fix.id)
+                .update("estado", newState.name)
+                .await()
+
             Log.d("Firestore", "Estado actualizado: ${fix.id} -> $newState")
         } catch(e: Exception) {
             Log.e("Firestore", "Error al actualizar estado del arreglo", e)

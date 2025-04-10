@@ -1,6 +1,7 @@
 package com.example.moncloaplus.model
 
 import com.example.moncloaplus.ADMIN_SCREEN
+import com.example.moncloaplus.MAINTAINER_SCREEN
 import com.example.moncloaplus.MAIN_SCREEN
 import com.example.moncloaplus.SIGN_IN_SCREEN
 import com.example.moncloaplus.SnackbarManager
@@ -100,6 +101,9 @@ class UserViewModel @Inject constructor (
 
                 if (user.isAdmin()) {
                     openAndPopUp(ADMIN_SCREEN, SIGN_IN_SCREEN)
+                }
+                else if (user.isMaintainer()) {
+                    openAndPopUp(MAINTAINER_SCREEN, SIGN_IN_SCREEN)
                 }
                 else {
                     openAndPopUp(MAIN_SCREEN, USER_DATA_SCREEN)

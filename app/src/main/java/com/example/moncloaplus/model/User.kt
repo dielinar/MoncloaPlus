@@ -32,4 +32,8 @@ data class User (
         return role == UserRole.MANTENIMIENTO
     }
 
+    fun canCreateFixes(): Boolean {
+        return role != UserRole.MANTENIMIENTO
+    }
+
 }

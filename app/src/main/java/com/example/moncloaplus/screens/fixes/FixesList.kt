@@ -14,12 +14,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -43,6 +45,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -83,7 +86,6 @@ fun FixCard(
         FixState.IN_PROGRESS -> FixesColors.inProgressContainer
         else -> FixesColors.fixedContainer
     }
-
     val stateContentColor = MaterialTheme.colorScheme.scrim
     var showImageDialog by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf(false) }
@@ -95,93 +97,126 @@ fun FixCard(
         elevation = CardDefaults.cardElevation(4.dp),
         shape = MaterialTheme.shapes.extraSmall
     ) {
-        Column(modifier = Modifier.background(Color.White)) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(stateContainerColor)
-                    .padding(8.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = when (fix.estado) {
-                        FixState.PENDING -> "Pendiente"
-                        FixState.IN_PROGRESS -> "En curso"
-                        else -> "Arreglado"
-                    },
-                    color = stateContentColor,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.background(Color.White)) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(stateContainerColor)
+                        .padding(8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = when (fix.estado) {
+                            FixState.PENDING -> "Pendiente"
+                            FixState.IN_PROGRESS -> "En curso"
+                            else -> "Arreglado"
+                        },
+                        color = stateContentColor,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
 
-            if (fix.imagen.url.isNotEmpty()) {
-                Box(modifier = Modifier.fillMaxWidth().height(180.dp).padding(8.dp).clip(MaterialTheme.shapes.extraSmall)) {
-                    if (isImageLoading) {
-                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                if (fix.imagen.url.isNotEmpty()) {
+                    Box(modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .padding(8.dp)
+                        .clip(MaterialTheme.shapes.extraSmall)) {
+                        if (isImageLoading) {
+                            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                        }
+                        AsyncImage(
+                            model = fix.imagen.url,
+                            contentDescription = "Imagen del arreglo",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(180.dp)
+                                .clickable { showImageDialog = true },
+                            contentScale = ContentScale.Crop,
+                            onSuccess = { isImageLoading = false },
+                            onError = { isImageLoading = false }
+                        )
                     }
-                    AsyncImage(
-                        model = fix.imagen.url,
-                        contentDescription = "Imagen del arreglo",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(180.dp)
-                            .clickable { showImageDialog = true },
-                        contentScale = ContentScale.Crop,
-                        onSuccess = { isImageLoading = false },
-                        onError = { isImageLoading = false }
+                }
+
+                Row(
+                    modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(painterResource(R.drawable.notes_24px), contentDescription = null, tint = stateContentColor)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = fix.descripcion,
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        color = stateContentColor
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.padding(start = 8.dp, top = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Outlined.LocationOn, contentDescription = null, tint = Color.Gray)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = fix.localizacion, color = Color.Gray, style = MaterialTheme.typography.bodyMedium)
+                }
+
+                Row(
+                    modifier = Modifier.padding(start = 8.dp, top = 8.dp, bottom = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Filled.DateRange, contentDescription = null, tint = Color.Gray)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = SimpleDateFormat("dd/MM/yyyy, HH:mm").format(fix.fecha.toDate()),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray
                     )
                 }
             }
-
-            Row(
-                modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+                    .align(Alignment.BottomEnd),
+                contentAlignment = Alignment.BottomEnd
             ) {
-                Icon(painterResource(R.drawable.notes_24px), contentDescription = null, tint = stateContentColor)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = fix.descripcion,
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    color = stateContentColor
-                )
-            }
-
-            Row(
-                modifier = Modifier.padding(start = 8.dp, top = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color.Gray)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = fix.localizacion, color = Color.Gray, style = MaterialTheme.typography.bodyMedium)
-            }
-
-            Row(
-                modifier = Modifier.padding(start = 8.dp, top = 2.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(Icons.Filled.DateRange, contentDescription = null, tint = Color.Gray)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = SimpleDateFormat("dd/MM/yyyy, HH:mm").format(fix.fecha.toDate()),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
-                )
-                Spacer(modifier = Modifier.weight(1f))
-
-                if (currentUser.isMaintainer()) {
-
-                } else {
-                    IconButton(onClick = {
-                        viewModel.loadFixForEditing(fix.id)
-                        showEditDialog = true
-                    }) {
-                        Icon(Icons.Filled.Edit, "Editar arreglo", tint = Color.Gray)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (currentUser.canCreateFixes() && fix.estado != FixState.FIXED){
+                        IconButton(
+                            onClick = {
+                                viewModel.loadFixForEditing(fix.id)
+                                showEditDialog = true
+                            },
+                            modifier = Modifier.padding(end = 0.dp)
+                        ) {
+                            Icon(Icons.Filled.Edit, stringResource(R.string.editar_arreglo), tint = Color.Gray)
+                        }
+                        IconButton(
+                            onClick = {
+                                showDeleteDialog = true
+                            },
+                            modifier = Modifier.padding(start = 0.dp)
+                        ) {
+                            Icon(
+                                painterResource(R.drawable.delete_24px),
+                                stringResource(R.string.eliminar_arreglo),
+                                tint = Color.Gray
+                            )
+                        }
                     }
-                    IconButton(onClick = { showDeleteDialog = true }) {
-                        Icon(painterResource(R.drawable.delete_24px), "Eliminar arreglo", tint = Color.Gray)
+
+                    if (currentUser.isMaintainer()) {
+                        StateDropdown(
+                            currentState = fix.estado,
+                            onStateChange = { newState ->
+                                viewModel.updateFixState(fix, newState)
+                            }
+                        )
                     }
                 }
             }

@@ -8,6 +8,7 @@ const val IN_PROGRESS_INDEX = 1
 const val FIXED_INDEX = 2
 
 val FIXES_STATES_OPTIONS: List<String> = listOf("Pendientes", "En curso", "Arreglados")
+val FIXES_STATES_NAMES: List<String> = listOf("Pendiente", "En curso", "Arreglado")
 
 val PENDING_ICON = R.drawable.stop_circle_24px
 val IN_PROGRESS_ICON = R.drawable.hourglass_top_24px

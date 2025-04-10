@@ -230,9 +230,7 @@ fun MealDropdown(
         onExpandedChange = {
             if (enabled) {
                 expanded = it
-                if (!it) {
-                    focusManager.clearFocus()
-                }
+                if (!it) focusManager.clearFocus()
             }
         }
     ) {

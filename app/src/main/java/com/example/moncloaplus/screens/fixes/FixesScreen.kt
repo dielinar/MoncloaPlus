@@ -31,6 +31,7 @@ fun FixesScreen(
     fixViewModel: FixViewModel = hiltViewModel(),
     accViewModel: AccountCenterViewModel = hiltViewModel()
 ) {
+    val allFixes by fixViewModel.allFixes.collectAsState()
     val userFixes by fixViewModel.userFixes.collectAsState()
     val currentUser by accViewModel.user.collectAsState()
     val isLoading by fixViewModel.isLoading.collectAsState()
@@ -39,11 +40,14 @@ fun FixesScreen(
 
     LaunchedEffect(Unit) {
         fixViewModel.fetchUserFixes(selectedState)
+        fixViewModel.fetchAllFixes(selectedState)
     }
 
     Scaffold(
-        floatingActionButton = {
-            NewFixButton(currentUser, fixViewModel)
+        floatingActionButton =  {
+            if (currentUser.canCreateFixes()) {
+                NewFixButton(currentUser, fixViewModel)
+            }
         },
         floatingActionButtonPosition = FabPosition.End
     ) { innerPadding ->
@@ -61,25 +65,30 @@ fun FixesScreen(
                     onOptionClick = {
                         selectedState = it
                         fixViewModel.fetchUserFixes(it)
+                        fixViewModel.fetchAllFixes(it)
                     }
                 )
             }
 
-            if (isLoading) {
-                LoadingIndicator()
+            val fixesList = if (currentUser.isMaintainer()) {
+                allFixes[selectedState]
             } else {
-                val fixesList = userFixes[selectedState] ?: emptyList()
+                userFixes[selectedState]
+            }
 
-                if (fixesList.isEmpty()) {
-                    Text(
-                        text = getEmptyFixesMessage(selectedState),
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp),
-                        textAlign = TextAlign.Center,
-                        fontStyle = FontStyle.Italic
-                    )
-                } else FixesList(fixViewModel, fixesList, currentUser)
+            if (isLoading || fixesList == null) {
+                LoadingIndicator()
+            } else if (fixesList.isEmpty()) {
+                Text(
+                    text = getEmptyFixesMessage(selectedState),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    textAlign = TextAlign.Center,
+                    fontStyle = FontStyle.Italic
+                )
+            } else {
+                FixesList(fixViewModel, fixesList, currentUser)
             }
         }
     }

@@ -4,6 +4,7 @@ import androidx.credentials.Credential
 import androidx.credentials.CustomCredential
 import com.example.moncloaplus.ADMIN_SCREEN
 import com.example.moncloaplus.HOME_SCREEN
+import com.example.moncloaplus.MAINTAINER_SCREEN
 import com.example.moncloaplus.MAIN_SCREEN
 import com.example.moncloaplus.SIGN_IN_SCREEN
 import com.example.moncloaplus.SnackbarManager
@@ -45,6 +46,9 @@ class SignInViewModel @Inject constructor(
                 if (user?.isAdmin() == true) {
                     openAndPopUp(ADMIN_SCREEN, SIGN_IN_SCREEN)
                 }
+                else if (user?.isMaintainer() == true) {
+                    openAndPopUp(MAINTAINER_SCREEN, SIGN_IN_SCREEN)
+                }
                 else {
                     openAndPopUp(MAIN_SCREEN, SIGN_IN_SCREEN)
                 }
@@ -73,6 +77,9 @@ class SignInViewModel @Inject constructor(
                     if (user != null) {
                         if (user.isAdmin()) {
                             openAndPopUp(ADMIN_SCREEN, SIGN_IN_SCREEN)
+                        }
+                        else if (user.isMaintainer()) {
+                            openAndPopUp(MAINTAINER_SCREEN, SIGN_IN_SCREEN)
                         }
                         else {
                             openAndPopUp(MAIN_SCREEN, SIGN_IN_SCREEN)
