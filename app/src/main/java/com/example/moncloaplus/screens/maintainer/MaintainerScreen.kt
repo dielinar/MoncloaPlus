@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DrawerValue
@@ -32,7 +31,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
@@ -45,10 +43,7 @@ import com.example.moncloaplus.R
 import com.example.moncloaplus.model.User
 import com.example.moncloaplus.screens.AppBar
 import com.example.moncloaplus.screens.account_center.AccountCenterViewModel
-import com.example.moncloaplus.screens.admin.export_meals.ExportMealsScreen
-import com.example.moncloaplus.screens.fixes.FixesList
 import com.example.moncloaplus.screens.fixes.FixesScreen
-import com.example.moncloaplus.screens.home.EXPORT_MEALS_SCREEN
 import com.example.moncloaplus.screens.home.FIXES_SCREEN
 import com.example.moncloaplus.screens.home.HomeScreen
 import com.example.moncloaplus.screens.home.MEALS_TEMPLATE_SCREEN

@@ -29,9 +29,6 @@ class FixViewModel @Inject constructor(
     private val _imageUri = MutableStateFlow<Uri?>(null)
     val imageUri: StateFlow<Uri?> = _imageUri.asStateFlow()
 
-    private val _editingFix = MutableStateFlow<Fix?>(null)
-    val editingFix = _editingFix.asStateFlow()
-
     private val _userFixes = MutableStateFlow<Map<Int, List<Fix>>>(emptyMap())
     val userFixes: StateFlow<Map<Int, List<Fix>>> = _userFixes.asStateFlow()
 
@@ -76,41 +73,9 @@ class FixViewModel @Inject constructor(
         }
     }
 
-    fun editFix() {
-        launchCatching {
-            _isLoading.value = true
-
-            _editingFix.value?.let { original ->
-                val updatedFix = original.copy(
-                    fecha = Timestamp.now(),
-                    descripcion = _description.value
-                )
-                fixService.editFix(updatedFix, _imageUri.value)
-                SnackbarManager.showMessage("Arreglo editado correctamente.")
-
-                fetchUserFixes(updatedFix.estado.ordinal)
-            }
-
-            resetValues()
-            _isLoading.value = false
-        }
-    }
-
-    fun loadFixForEditing(fixId: String) {
-        launchCatching {
-            val fix = fixService.getFix(fixId)
-            fix?.let {
-                _editingFix.value = it
-                _description.value = it.descripcion
-                _imageUri.value = it.imagen.url.takeIf { url -> url.isNotBlank() }?.let { url -> Uri.parse(url) }
-            }
-        }
-    }
-
-    fun resetValues() {
+    private fun resetValues() {
         updateDescription("")
         _imageUri.value = null
-        _editingFix.value = null
     }
 
     fun fetchUserFixes(state: Int) {

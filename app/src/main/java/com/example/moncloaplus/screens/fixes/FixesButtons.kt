@@ -21,7 +21,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -183,7 +182,7 @@ fun FixesSegmentedButton(
     options: List<String>,
     onOptionClick: (Int) -> Unit
 ) {
-    var selectedOption by remember { mutableIntStateOf(PENDING_INDEX) }
+    var selectedOption by remember { mutableIntStateOf(0) }
 
     SingleChoiceSegmentedButtonRow(
         modifier = Modifier.scale(0.9f)
@@ -231,117 +230,6 @@ fun NewFixButton(
 
 }
 
-@Composable
-fun EditFixDialog(
-    currentUser: User,
-    viewModel: FixViewModel,
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit
-) {
-    val description by viewModel.description.collectAsState()
-    val imageUri by viewModel.imageUri.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-
-    val descriptionError = description.isEmpty()
-
-    val imagePickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        uri?.let { viewModel.updateImageUri(it) }
-    }
-
-    Dialog(onDismissRequest = { if (!isLoading) onDismiss() }) {
-        val focusManager = LocalFocusManager.current
-
-        Surface(
-            shape = MaterialTheme.shapes.extraLarge,
-            tonalElevation = 6.dp
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Spacer(modifier = Modifier.height(36.dp))
-                Icon(
-                    painter = painterResource(R.drawable.handyman_24px__1_),
-                    contentDescription = null,
-                    modifier = Modifier.size(32.dp)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    modifier = Modifier.padding(bottom = 32.dp),
-                    text = "Editando arreglo...",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
-                )
-                HorizontalDivider(thickness = 2.dp)
-
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        "Localización:",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Text(
-                        text = currentUser.roomNumber,
-                        fontSize = 16.sp
-                    )
-                }
-                HorizontalDivider(thickness = 2.dp)
-
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = { viewModel.updateDescription(it) },
-                    label = { Text("Descripción", style = MaterialTheme.typography.labelMedium) },
-                    modifier = Modifier.fillMaxWidth().focusable(true).padding(top = 16.dp, start = 24.dp, end = 24.dp, bottom = 24.dp),
-                    maxLines = 3,
-                    singleLine = false,
-                    enabled = !isLoading,
-                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-                    isError = descriptionError,
-                    supportingText = {
-                        if (descriptionError) {
-                            Text("La descripción es obligatoria", color = MaterialTheme.colorScheme.error)
-                        }
-                    }
-                )
-
-                Button(onClick = { imagePickerLauncher.launch("image/*") }, enabled = !isLoading) {
-                    Text(text = if (imageUri == null) "Seleccionar imagen" else "Cambiar imagen")
-                }
-
-                imageUri?.let {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Image(
-                        painter = rememberAsyncImagePainter(it),
-                        contentDescription = "Imagen seleccionada",
-                        modifier = Modifier
-                            .size(120.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
-                    )
-                }
-                Spacer(modifier = Modifier.height(32.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp, end = 24.dp),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(onClick = onDismiss, enabled = !isLoading) { Text("Cancelar", fontSize = 16.sp) }
-                    TextButton(
-                        onClick = onConfirm,
-                        enabled = !isLoading && !descriptionError
-                    ) {
-                        if (isLoading) {
-                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                        } else Text("Guardar cambios", fontSize = 16.sp)
-                    }
-                }
-            }
-        }
-    }
-
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StateDropdown(
@@ -360,26 +248,30 @@ fun StateDropdown(
         else -> FixesColors.fixedContainer
     }
 
+    val isFixed = currentState == FixState.FIXED
+
     ExposedDropdownMenuBox(
         modifier = Modifier.scale(0.9f),
         expanded = expanded,
         onExpandedChange = {
-            expanded = it
-            if (!it) focusManager.clearFocus()
+            if (!isFixed) {
+                expanded = it
+                if (!it) focusManager.clearFocus()
+            }
         }
     ) {
         OutlinedTextField(
             value = selectedLabel,
             onValueChange = {},
             readOnly = true,
+            enabled = !isFixed,
             label = { Text("Estado", fontSize = 12.sp, color = Color.Gray) },
             textStyle = TextStyle(
                 fontSize = 14.sp,
-                textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.scrim
             ),
             modifier = Modifier
-                .height(54.dp)
+                .height(58.dp)
                 .width(130.dp)
                 .menuAnchor()
                 .onFocusChanged { focusState ->
@@ -387,28 +279,34 @@ fun StateDropdown(
                         expanded = false
                     }
                 },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            trailingIcon = {
+                if (!isFixed) ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            },
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedBorderColor = stateBorderColor,
-                focusedBorderColor = stateBorderColor
+                focusedBorderColor = stateBorderColor,
+                disabledBorderColor = stateBorderColor,
+                disabledTextColor = MaterialTheme.colorScheme.scrim
             )
         )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = {
-                expanded = false
-                focusManager.clearFocus()
-            }
-        ) {
-            options.forEachIndexed { index, label ->
-                DropdownMenuItem(
-                    text = { Text(label) },
-                    onClick = {
-                        onStateChange(FixState.entries[index])
-                        expanded = false
-                        focusManager.clearFocus()
-                    }
-                )
+        if (!isFixed) {
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = {
+                    expanded = false
+                    focusManager.clearFocus()
+                }
+            ) {
+                options.forEachIndexed { index, label ->
+                    DropdownMenuItem(
+                        text = { Text(label) },
+                        onClick = {
+                            onStateChange(FixState.entries[index])
+                            expanded = false
+                            focusManager.clearFocus()
+                        }
+                    )
+                }
             }
         }
     }

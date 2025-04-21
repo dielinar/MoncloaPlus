@@ -51,30 +51,6 @@ class FixServiceImpl @Inject constructor(
         return newFix
     }
 
-    override suspend fun getFix(fixId: String): Fix? {
-        return try {
-            val doc = fixesCollection.document(fixId).get().await()
-            val fix = doc.toObject(Fix::class.java)?.copy(id = doc.id)
-
-            fix?.let {
-                val userId = doc.reference.parent.parent?.id
-                if (userId != null) {
-                    val user = storageService.getUser(userId)
-                    it.owner = user
-                }
-
-                if (it.imagen.path.isNotEmpty()) {
-                    val imageUrl = getImageUrl(it.imagen.path)
-                    it.imagen = it.imagen.copy(url = imageUrl)
-                }
-            }
-            fix
-        } catch (e: Exception) {
-            Log.e("Firestore", "Error al obtener el arreglo", e)
-            null
-        }
-    }
-
     override suspend fun getUserFixes(state: Int): List<Fix> = coroutineScope {
         try {
             val result = fixesCollection
@@ -123,36 +99,6 @@ class FixServiceImpl @Inject constructor(
             Log.d("Firestore", "Arreglo eliminado correctamente: ${fix.id}")
         } catch (e: Exception) {
             Log.e("Firestore", "Error al eliminar el arreglo", e)
-        }
-    }
-
-    override suspend fun editFix(fix: Fix, imageUri: Uri?) {
-        try {
-            var updatedImage = fix.imagen
-
-            if (imageUri != null) {
-                if (fix.imagen.path.isNotEmpty()) {
-                    try {
-                        storage.reference.child(fix.imagen.path).delete().await()
-                    } catch (e: Exception) {
-                        Log.e("Firebase Storage", "Error al eliminar imagen anterior", e)
-                    }
-                }
-
-                val uploadResult = uploadImage(userId, fix.id, imageUri)
-                updatedImage = Fix.FixImage(
-                    nombreArchivo = uploadResult.fileName,
-                    url = uploadResult.downloadUrl,
-                    path = uploadResult.path,
-                    tamano = uploadResult.size
-                )
-            }
-            val updatedFix = fix.copy(imagen = updatedImage)
-
-            fixesCollection.document(fix.id).set(updatedFix).await()
-            Log.d("Firestore", "Arreglo editado correctamente: ${fix.id}")
-        } catch (e: Exception) {
-            Log.e("Firestore", "Error al editar el arreglo", e)
         }
     }
 
@@ -230,4 +176,5 @@ class FixServiceImpl @Inject constructor(
             ""
         }
     }
+
 }

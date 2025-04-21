@@ -14,13 +14,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -32,7 +29,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,7 +43,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -88,7 +83,6 @@ fun FixCard(
     }
     val stateContentColor = MaterialTheme.colorScheme.scrim
     var showImageDialog by remember { mutableStateOf(false) }
-    var showEditDialog by remember { mutableStateOf(false) }
     var isImageLoading by remember { mutableStateOf(true) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
@@ -189,15 +183,6 @@ fun FixCard(
                     if (currentUser.canCreateFixes() && fix.estado != FixState.FIXED){
                         IconButton(
                             onClick = {
-                                viewModel.loadFixForEditing(fix.id)
-                                showEditDialog = true
-                            },
-                            modifier = Modifier.padding(end = 0.dp)
-                        ) {
-                            Icon(Icons.Filled.Edit, stringResource(R.string.editar_arreglo), tint = Color.Gray)
-                        }
-                        IconButton(
-                            onClick = {
                                 showDeleteDialog = true
                             },
                             modifier = Modifier.padding(start = 0.dp)
@@ -258,45 +243,6 @@ fun FixCard(
                 }
             }
         )
-    }
-
-    if (showEditDialog) {
-        val editingFix by viewModel.editingFix.collectAsState()
-
-        if (editingFix == null) {
-            AlertDialog(
-                onDismissRequest = {},
-                title = { Text("Cargando arreglo", textAlign = TextAlign.Center) },
-                text = {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                },
-                confirmButton = {
-                    TextButton(onClick = {showEditDialog = false}) {
-                        Text("Cancelar")
-                    }
-                }
-            )
-        } else {
-            EditFixDialog(
-                currentUser = currentUser,
-                viewModel = viewModel,
-                onDismiss = {
-                    viewModel.resetValues()
-                    showEditDialog = false
-                },
-                onConfirm = {
-                    viewModel.editFix()
-                    showEditDialog = false
-                }
-            )
-        }
     }
 
 }
