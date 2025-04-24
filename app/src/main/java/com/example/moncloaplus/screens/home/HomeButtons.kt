@@ -174,7 +174,7 @@ fun ParticipateButton() {
         /* enabled = !isCurrentReservation && !isPastReservation, */
         modifier = Modifier.scale(0.9f),
         colors = FilterChipDefaults.filterChipColors(
-            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
+            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
             selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
             selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
         ),

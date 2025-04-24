@@ -175,7 +175,11 @@ fun ApplyMealsTemplateFilterChip(
 }
 
 @Composable
-fun SaveMealsButton(buttonText: String, onSave: () -> Unit, enabled: Boolean) {
+fun SaveMealsButton(
+    buttonText: String,
+    onSave: () -> Unit,
+    enabled: Boolean
+) {
     FilledTonalButton (
         onClick = { if (enabled) onSave() },
         modifier = Modifier

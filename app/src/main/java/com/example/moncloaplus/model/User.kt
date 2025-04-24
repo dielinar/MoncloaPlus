@@ -36,4 +36,8 @@ data class User (
         return role != UserRole.MANTENIMIENTO
     }
 
+    fun canAddEvents(): Boolean {
+        return role == UserRole.VOCAL || role == UserRole.ESTUDIOS || role == UserRole.CLUB
+    }
+
 }

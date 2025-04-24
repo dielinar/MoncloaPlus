@@ -3,22 +3,22 @@ package com.example.moncloaplus.model
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.Exclude
 
-enum class FixState { PENDING, IN_PROGRESS, FIXED }
+enum class EventType { ACTIVIDAD_COLEGIAL, CLUBES_PROFESIONALES, DE_INTERES, NONE }
 
-data class Fix (
+data class Event(
     var id: String = "",
+    val titulo: String = "",
     val fecha: Timestamp = Timestamp.now(),
-    val localizacion: String = "",
     val descripcion: String = "",
-    val estado: FixState = FixState.PENDING,
-    var imagen: FixImage = FixImage(),
+    val tipo: EventType = EventType.NONE,
+    var cartel: EventImage = EventImage(),
 
     @get:Exclude
     var owner: User? = null
 
 ) {
 
-    data class FixImage(
+    data class EventImage(
         val nombreArchivo: String = "",
         val url: String = "",
         val path: String = "",

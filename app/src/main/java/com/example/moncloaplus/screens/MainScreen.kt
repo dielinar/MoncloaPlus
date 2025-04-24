@@ -22,7 +22,9 @@ import com.example.moncloaplus.R
 import com.example.moncloaplus.model.User
 import com.example.moncloaplus.screens.account_center.AccountCenterViewModel
 import com.example.moncloaplus.screens.admin.export_meals.ExportMealsScreen
+import com.example.moncloaplus.screens.create_event.CreateEventScreen
 import com.example.moncloaplus.screens.fixes.FixesScreen
+import com.example.moncloaplus.screens.home.CREATE_EVENT_SCREEN
 import com.example.moncloaplus.screens.home.EXPORT_MEALS_SCREEN
 import com.example.moncloaplus.screens.home.FIXES_SCREEN
 import com.example.moncloaplus.screens.home.HomeScreen
@@ -83,6 +85,20 @@ fun MainScreen(
                         },
                         shape = MaterialTheme.shapes.small
                     )
+
+                    if (user.canAddEvents()) {
+                        NavigationDrawerItem(
+                            icon = { Icon(painter = painterResource(R.drawable.edit_calendar_24px), contentDescription = null) },
+                            label = { Text("Añadir evento") },
+                            selected = currentRoute?.destination?.route == CREATE_EVENT_SCREEN,
+                            onClick = {
+                                scope.launch { drawerState.close() }
+                                navController.navigate(CREATE_EVENT_SCREEN)
+                            },
+                            shape = MaterialTheme.shapes.small
+                        )
+                    }
+
                     HorizontalDivider(
                         modifier = Modifier.padding(top = 6.dp, bottom = 6.dp),
                         thickness = 2.dp
@@ -153,6 +169,7 @@ fun MainScreen(
                         },
                         shape = MaterialTheme.shapes.small
                     )
+
                     Spacer(Modifier.weight(1f))
 
                     NavigationDrawerItem(
@@ -218,6 +235,10 @@ fun NavGraphBuilder.mainGraph() {
 
     composable(FIXES_SCREEN) {
         FixesScreen()
+    }
+
+    composable(CREATE_EVENT_SCREEN) {
+        CreateEventScreen()
     }
 
 }
