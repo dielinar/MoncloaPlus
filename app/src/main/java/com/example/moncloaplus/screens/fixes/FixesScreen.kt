@@ -70,11 +70,11 @@ fun FixesScreen(
                 )
             }
 
-            val fixesList = if (currentUser.isMaintainer()) {
+            val fixesList = if (currentUser.isMaintainer())
                 allFixes[selectedState]
-            } else {
+            else
                 userFixes[selectedState]
-            }
+
 
             if (isLoading || fixesList == null) {
                 LoadingIndicator()

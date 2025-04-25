@@ -12,6 +12,7 @@ data class Event(
     val descripcion: String = "",
     val tipo: EventType = EventType.NONE,
     var cartel: EventImage = EventImage(),
+    val ponentes: List<String> = emptyList(),
 
     @get:Exclude
     var owner: User? = null
