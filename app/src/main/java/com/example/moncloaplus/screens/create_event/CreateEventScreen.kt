@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.moncloaplus.R
+import com.example.moncloaplus.model.EventType
 import com.example.moncloaplus.model.EventViewModel
 
 @Composable
@@ -50,7 +51,6 @@ fun CreateEventScreen(
     viewModel: EventViewModel = hiltViewModel()
 ) {
     val title by viewModel.title.collectAsState()
-    val eventType by viewModel.eventType.collectAsState()
     val description by viewModel.description.collectAsState()
     val speakers by viewModel.speakers.collectAsState()
     val imageUri by viewModel.imageUri.collectAsState()
@@ -62,6 +62,7 @@ fun CreateEventScreen(
     val scrollState = rememberScrollState()
 
     var isAllDay by remember { mutableStateOf(false) }
+    var eventType by remember { mutableStateOf(EventType.ACTIVIDAD_COLEGIAL) }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let { viewModel.updateImageUri(it) }
@@ -76,7 +77,7 @@ fun CreateEventScreen(
         // Save button
         Box(modifier = Modifier.fillMaxWidth().padding(top = 16.dp, end = 24.dp)) {
             SaveEventButton(
-                onSave = {},
+                onSave = { viewModel.createEvent(eventType) },
 //                onSave = {
 //                    val finalTime = if (isAllDay) null else eventTime
 //                    viewModel.saveEvent(
@@ -133,7 +134,9 @@ fun CreateEventScreen(
         Box(modifier = Modifier.fillMaxWidth()) {
             EventTypeSelector(
                 selectedType = eventType,
-                onTypeSelected = { viewModel.updateEventType(it) }
+                onTypeSelected = { selected ->
+                    eventType = selected
+                }
             )
         }
 

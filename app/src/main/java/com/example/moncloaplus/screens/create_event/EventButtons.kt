@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -47,6 +48,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.moncloaplus.R
+import com.example.moncloaplus.model.EventType
 import com.example.moncloaplus.screens.reservation.AdvancedTimePickerDialog
 import com.example.moncloaplus.screens.reservation.DatePickerModal
 import com.example.moncloaplus.screens.reservation.formatHourMinute
@@ -77,22 +79,19 @@ fun SaveEventButton(
 
 @Composable
 fun EventTypeSelector(
-    selectedType: String,
-    onTypeSelected: (String) -> Unit
+    selectedType: EventType,
+    onTypeSelected: (EventType) -> Unit
 ) {
     LazyRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        itemsIndexed(EVENT_TYPES) { index, type ->
-            val isFirst = index == 0
-            val isLast = index == EVENT_TYPES.lastIndex
-
+        items(eventTypeNameMap.entries.toList()) { (type, label) ->
             AssistChip(
                 onClick = { onTypeSelected(type) },
                 label = {
                     Text(
-                        type,
+                        label,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -106,8 +105,8 @@ fun EventTypeSelector(
                     color = MaterialTheme.colorScheme.outline
                 ),
                 modifier = Modifier.padding(
-                    start = if (isFirst) 24.dp else 0.dp,
-                    end = if (isLast) 8.dp else 0.dp
+                    start = if (type == eventTypeNameMap.keys.first()) 24.dp else 0.dp,
+                    end = if (type == eventTypeNameMap.keys.last()) 8.dp else 0.dp
                 )
             )
         }

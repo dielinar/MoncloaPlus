@@ -2,44 +2,63 @@ package com.example.moncloaplus.screens.home
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.moncloaplus.model.EventType
+import com.example.moncloaplus.model.EventViewModel
+import com.example.moncloaplus.screens.create_event.eventTypeNameMap
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(
+    viewModel: EventViewModel = hiltViewModel()
+) {
+    val allEvents by viewModel.allEvents.collectAsState()
 
-    val carousels = listOf(
-        "Actividades colegiales" to List(5) { "https://picsum.photos/800/400?random=${it + 1}" },
-        "Clubes profesionales" to List(6) { "https://picsum.photos/800/400?random=${it + 10}" },
-        "De interés" to List(4) { "https://picsum.photos/800/400?random=${it + 20}" }
-    )
+    LaunchedEffect(Unit) {
+        viewModel.fetchAllEvents()
+    }
 
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 32.dp, bottom = 32.dp),
+            .padding(vertical = 32.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        items(carousels) { (title, images) ->
-            Column {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                )
-                ImageCarousel(images = images)
+        allEvents.forEach{ (eventTypeOrdinal, events) ->
+            val eventType = EventType.entries[eventTypeOrdinal]
+            val title = eventTypeNameMap[eventType] ?: "Otros"
+
+            item {
+                Column {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.headlineMedium,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                    )
+
+                    val eventsWithImage = events.filter { it.cartel.url.isNotEmpty() }
+
+                    if (eventsWithImage.isNotEmpty()) {
+                        ImageCarousel(events = eventsWithImage)
+                    } else {
+                        Text(
+                            text = "No hay eventos disponibles",
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                    }
+                }
             }
         }
     }
