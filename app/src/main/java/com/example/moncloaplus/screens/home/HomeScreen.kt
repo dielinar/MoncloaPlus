@@ -12,21 +12,23 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.moncloaplus.model.EventType
 import com.example.moncloaplus.model.EventViewModel
+import com.example.moncloaplus.screens.account_center.AccountCenterViewModel
 import com.example.moncloaplus.screens.create_event.eventTypeNameMap
 
 @Composable
 fun HomeScreen(
-    viewModel: EventViewModel = hiltViewModel()
+    eventViewModel: EventViewModel = hiltViewModel(),
+    accViewModel: AccountCenterViewModel = hiltViewModel()
 ) {
-    val allEvents by viewModel.allEvents.collectAsState()
+    val allEvents by eventViewModel.allEvents.collectAsState()
+    val currentUser by accViewModel.user.collectAsState()
 
     LaunchedEffect(Unit) {
-        viewModel.fetchAllEvents()
+        eventViewModel.fetchAllEvents()
     }
 
     LazyColumn(
@@ -50,7 +52,11 @@ fun HomeScreen(
                     val eventsWithImage = events.filter { it.cartel.url.isNotEmpty() }
 
                     if (eventsWithImage.isNotEmpty()) {
-                        ImageCarousel(events = eventsWithImage)
+                        ImageCarousel(
+                            events = eventsWithImage,
+                            viewModel = eventViewModel,
+                            currentUserId = currentUser.id
+                        )
                     } else {
                         Text(
                             text = "No hay eventos disponibles",

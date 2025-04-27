@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -19,10 +20,14 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -48,6 +53,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.moncloaplus.R
+import com.example.moncloaplus.model.ActividadesColegiales
+import com.example.moncloaplus.model.ClubesProfesionales
 import com.example.moncloaplus.model.EventType
 import com.example.moncloaplus.screens.reservation.AdvancedTimePickerDialog
 import com.example.moncloaplus.screens.reservation.DatePickerModal
@@ -77,38 +84,118 @@ fun SaveEventButton(
 
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventTypeSelector(
     selectedType: EventType,
-    onTypeSelected: (EventType) -> Unit
+    selectedSubCategory: Any?,
+    onTypeSelected: (EventType) -> Unit,
+    onSubCategorySelected: (EventType, Any) -> Unit
 ) {
+    var expandedType by remember { mutableStateOf<EventType?>(null) }
+
     LazyRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(eventTypeNameMap.entries.toList()) { (type, label) ->
-            AssistChip(
-                onClick = { onTypeSelected(type) },
-                label = {
-                    Text(
-                        label,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+
+            val isExpandable = type == EventType.ACTIVIDAD_COLEGIAL || type == EventType.CLUBES_PROFESIONALES
+            val isExpanded = expandedType == type
+
+            ExposedDropdownMenuBox(
+                expanded = isExpanded,
+                onExpandedChange = {
+                    if (isExpandable) {
+                        expandedType = if (isExpanded) null else type
+                    } else {
+                        onTypeSelected(type)
+                        expandedType = null
+                    }
                 },
-                colors = AssistChipDefaults.assistChipColors(
-                    containerColor = if (selectedType == type) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.surface,
-                    labelColor = if (selectedType == type) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.outline
-                ),
-                border = if (selectedType == type) null else BorderStroke(
-                    width = 0.5.dp,
-                    color = MaterialTheme.colorScheme.outline
-                ),
-                modifier = Modifier.padding(
-                    start = if (type == eventTypeNameMap.keys.first()) 24.dp else 0.dp,
-                    end = if (type == eventTypeNameMap.keys.last()) 8.dp else 0.dp
+                modifier = Modifier
+                    .padding(
+                        start = if (type == eventTypeNameMap.keys.first()) 24.dp else 0.dp,
+                        end = if (type == eventTypeNameMap.keys.last()) 8.dp else 0.dp
+                    )
+            ) {
+                val displayLabel = when {
+                    selectedType == EventType.ACTIVIDAD_COLEGIAL && selectedSubCategory is ActividadesColegiales ->
+                        actividadesColegialesNameMap[selectedSubCategory] ?: label
+                    selectedType == EventType.CLUBES_PROFESIONALES && selectedSubCategory is ClubesProfesionales ->
+                        clubesProfesionalesNameMap[selectedSubCategory] ?: label
+                    else -> label
+                }
+
+                AssistChip(
+                    onClick = { // <- Acá también lo controlamos
+                        if (isExpandable) {
+                            expandedType = if (isExpanded) null else type
+                        } else {
+                            onTypeSelected(type)
+                            expandedType = null
+                        }
+                    },
+                    label = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = if (selectedType == type) displayLabel else label,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    },
+                    trailingIcon = {
+                        if (isExpandable) {
+                            Icon(
+                                imageVector = Icons.Outlined.ArrowDropDown,
+                                contentDescription = "Seleccionar subcategoría",
+                                tint = if (selectedType == type) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.outline
+                            )
+                        }
+                    },
+                    colors = AssistChipDefaults.assistChipColors(
+                        containerColor = if (selectedType == type) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.surface,
+                        labelColor = if (selectedType == type) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.outline
+                    ),
+                    border = if (selectedType == type) null else BorderStroke(
+                        width = 0.5.dp,
+                        color = MaterialTheme.colorScheme.outline
+                    ),
+                    modifier = Modifier.menuAnchor()
                 )
-            )
+
+                ExposedDropdownMenu(
+                    expanded = isExpanded,
+                    onDismissRequest = { expandedType = null }
+                ) {
+                    when (type) {
+                        EventType.ACTIVIDAD_COLEGIAL -> {
+                            ActividadesColegiales.entries.forEach { subType ->
+                                DropdownMenuItem(
+                                    text = { Text(actividadesColegialesNameMap[subType] ?: "") },
+                                    onClick = {
+                                        onSubCategorySelected(type, subType)
+                                        expandedType = null
+                                    }
+                                )
+                            }
+                        }
+                        EventType.CLUBES_PROFESIONALES -> {
+                            ClubesProfesionales.entries.forEach { subType ->
+                                DropdownMenuItem(
+                                    text = { Text(clubesProfesionalesNameMap[subType] ?: "") },
+                                    onClick = {
+                                        onSubCategorySelected(type, subType)
+                                        expandedType = null
+                                    }
+                                )
+                            }
+                        }
+                        else -> {}
+                    }
+                }
+            }
         }
     }
 }

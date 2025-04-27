@@ -6,6 +6,8 @@ import com.example.moncloaplus.model.service.AccountService
 import com.example.moncloaplus.model.service.EventService
 import com.example.moncloaplus.model.service.StorageService
 import com.example.moncloaplus.screens.PlusViewModel
+import com.example.moncloaplus.screens.create_event.actividadesColegialesNameMap
+import com.example.moncloaplus.screens.create_event.clubesProfesionalesNameMap
 import com.example.moncloaplus.screens.reservation.getDefaultStartTime
 import com.google.firebase.Timestamp
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -56,7 +58,7 @@ class EventViewModel @Inject constructor(
     fun updateDate(newDate: Long) { _date.value = newDate }
     fun updateEventTime(newEventTime: Pair<Int, Int>) { _eventTime.value = newEventTime }
 
-    fun createEvent(type: EventType) {
+    fun createEvent(type: EventType, subType: Any?) {
         launchCatching {
             _isLoading.value = true
 
@@ -68,8 +70,14 @@ class EventViewModel @Inject constructor(
                 fecha = getDateTimestamp(),
                 descripcion = _description.value,
                 tipo = type,
+                subtipo = when (type) {
+                    EventType.ACTIVIDAD_COLEGIAL -> actividadesColegialesNameMap[subType]
+                    EventType.CLUBES_PROFESIONALES -> clubesProfesionalesNameMap[subType]
+                    else -> "De interés"
+                } ?: "",
                 cartel = Event.EventImage(),
                 ponentes = _speakers.value,
+                asistentes = emptyList(),
                 owner = currentUser
             )
             val newEvent = eventService.createEvent(event, imageUri.value)
@@ -100,6 +108,22 @@ class EventViewModel @Inject constructor(
         }
     }
 
+    fun addParticipant(eventId: String) {
+        launchCatching {
+            eventService.addParticipant(eventId, accountService.currentUserId)
+            updateEventParticipants(eventId, accountService.currentUserId, add = true)
+            SnackbarManager.showMessage("Te has apuntado al evento.")
+        }
+    }
+
+    fun removeParticipant(eventId: String) {
+        launchCatching {
+            eventService.removeParticipant(eventId, accountService.currentUserId)
+            updateEventParticipants(eventId, accountService.currentUserId, add = false)
+            SnackbarManager.showMessage("Has cancelado tu participación.")
+        }
+    }
+
     private fun resetValues() {
         updateTitle("")
         updateDescription("")
@@ -116,6 +140,21 @@ class EventViewModel @Inject constructor(
             updatedEvents.add(event)
             updatedEvents.sortByDescending { it.fecha }
             put(stateKey, updatedEvents)
+        }
+    }
+
+    private fun updateEventParticipants(eventId: String, userId: String, add: Boolean) {
+        _allEvents.value = _allEvents.value.mapValues { entry ->
+            entry.value.map { event ->
+                if (event.id == eventId) {
+                    val updatedList = if (add) {
+                        event.asistentes + userId
+                    } else {
+                        event.asistentes - userId
+                    }
+                    event.copy(asistentes = updatedList)
+                } else event
+            }
         }
     }
 

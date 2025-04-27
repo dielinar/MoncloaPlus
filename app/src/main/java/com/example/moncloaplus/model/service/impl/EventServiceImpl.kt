@@ -6,6 +6,7 @@ import com.example.moncloaplus.model.Event
 import com.example.moncloaplus.model.EventType
 import com.example.moncloaplus.model.UploadResult
 import com.example.moncloaplus.model.service.EventService
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
@@ -78,6 +79,16 @@ class EventServiceImpl @Inject constructor(
             Log.e("Firestore", "Error al obtener eventos por tipo", e)
             emptyList()
         }
+    }
+
+    override suspend fun addParticipant(eventId: String, userId: String) {
+        val eventDoc = eventsCollection.document(eventId)
+        eventDoc.update("asistentes", FieldValue.arrayUnion(userId)).await()
+    }
+
+    override suspend fun removeParticipant(eventId: String, userId: String) {
+        val eventDoc = eventsCollection.document(eventId)
+        eventDoc.update("asistentes", FieldValue.arrayRemove(userId)).await()
     }
 
     private suspend fun uploadImage(eventId: String, eventType: EventType, uri: Uri): UploadResult {

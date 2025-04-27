@@ -24,7 +24,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -42,7 +41,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -50,15 +48,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.moncloaplus.model.Event
+import com.example.moncloaplus.model.EventViewModel
 import com.example.moncloaplus.screens.reservation.convertMillisToDate
 import com.example.moncloaplus.screens.reservation.formatHourMinute
 import java.util.Calendar
 
 @Composable
 fun ImageCarousel(
-    events: List<Event>
+    events: List<Event>,
+    viewModel: EventViewModel,
+    currentUserId: String
 ) {
     var showImageDialog by remember { mutableStateOf(false) }
     var selectedImageUrl by remember { mutableStateOf("") }
@@ -69,7 +71,7 @@ fun ImageCarousel(
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
-            .height(353.dp),
+            .height(400.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         contentPadding = PaddingValues(horizontal = 16.dp)
     ) {
@@ -78,7 +80,7 @@ fun ImageCarousel(
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier
                     .fillMaxHeight()
-                    .width(180.dp)
+                    .width(215.dp)
                     .border(
                         width = 1.dp,
                         color = MaterialTheme.colorScheme.outline,
@@ -95,7 +97,7 @@ fun ImageCarousel(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = event.titulo,
+                            text = event.subtipo,
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onTertiaryContainer,
                             maxLines = 1,
@@ -108,7 +110,7 @@ fun ImageCarousel(
                     AsyncImage(
                         model = event.cartel.url,
                         contentDescription = event.titulo,
-                        contentScale = ContentScale.Fit,
+                        contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxWidth()
@@ -128,7 +130,11 @@ fun ImageCarousel(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        ParticipateButton()
+                        ParticipateButton(
+                            event = event,
+                            currentUserId = currentUserId,
+                            viewModel = viewModel
+                        )
 
                         IconButton(
                             onClick = {
@@ -261,31 +267,33 @@ fun ImageCarousel(
 }
 
 @Composable
-fun ParticipateButton() {
-
-    var isParticipating by remember { mutableStateOf(false) }
+fun ParticipateButton(
+    event: Event,
+    currentUserId: String,
+    viewModel: EventViewModel
+) {
+    var isParticipating by remember { mutableStateOf(currentUserId in event.asistentes) }
 
     val borderColor = if (isParticipating) MaterialTheme.colorScheme.onPrimaryContainer
-                        else MaterialTheme.colorScheme.outline
+    else MaterialTheme.colorScheme.outline
 
     FilterChip(
         onClick = {
             isParticipating = !isParticipating
-            /* if (isParticipating) {
-                viewModel.deleteParticipant(reservation, currentUser.id)
+            if (isParticipating) {
+                viewModel.addParticipant(event.id)
             } else {
-                viewModel.addParticipant(reservation, currentUser.id)
-            } */
+                viewModel.removeParticipant(event.id)
+            }
         },
         label = {
             Text(
-                text = "Asistiré",
+                text = if (isParticipating) "Apuntado" else "Asistiré",
                 color = borderColor
             )
         },
         selected = isParticipating,
         enabled = true,
-        /* enabled = !isCurrentReservation && !isPastReservation, */
         modifier = Modifier.scale(0.9f),
         colors = FilterChipDefaults.filterChipColors(
             selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,

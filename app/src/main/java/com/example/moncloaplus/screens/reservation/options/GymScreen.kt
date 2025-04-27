@@ -91,9 +91,8 @@ fun GymScreen(
                     reservationsByDate[GYM_INDEX]?.get(normalizedCurrentDate)
                 }
 
-                if (reservationsToShow == null) {
-                    // No mostrar nada si aún no están listas las reservas (evita el mensaje falso)
-                } else if (reservationsToShow.isEmpty()) {
+                if (reservationsToShow == null) {}
+                else if (reservationsToShow.isEmpty()) {
                     Text(
                         text = if (selected) "No tienes reservas para este día." else "Sin reservas para este día.",
                         modifier = Modifier.fillMaxSize().padding(16.dp),
