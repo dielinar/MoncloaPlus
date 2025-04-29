@@ -45,8 +45,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -77,11 +81,10 @@ fun ImageCarousel(
         contentPadding = PaddingValues(horizontal = 16.dp)
     ) {
         items(events) { event ->
-
             val isParticipating by remember(event.asistentes) {
                 derivedStateOf { currentUserId in event.asistentes }
-
             }
+
             Card(
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier
@@ -97,7 +100,7 @@ fun ImageCarousel(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.tertiaryContainer)
+                            .background(MaterialTheme.colorScheme.primaryContainer)
                             .padding(8.dp),
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
@@ -105,7 +108,7 @@ fun ImageCarousel(
                         Text(
                             text = event.subtipo,
                             style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onTertiaryContainer,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -224,7 +227,12 @@ fun ImageCarousel(
                             val eventMillis = selectedEvent!!.fecha.toDate().time
                             val formattedDate = convertMillisToDate(eventMillis)
                             Text(
-                                text = "Fecha: $formattedDate",
+                                text = buildAnnotatedString {
+                                    withStyle(style = SpanStyle(fontStyle = FontStyle.Italic)) {
+                                        append("Fecha: ")
+                                    }
+                                    append(formattedDate)
+                                },
                                 style = MaterialTheme.typography.bodyLarge
                             )
 
@@ -242,7 +250,12 @@ fun ImageCarousel(
                                     minute = calendar.get(Calendar.MINUTE)
                                 )
                                 Text(
-                                    text = "Hora: $formattedTime",
+                                    text = buildAnnotatedString {
+                                        withStyle(style = SpanStyle(fontStyle = FontStyle.Italic)) {
+                                            append("Hora: ")
+                                        }
+                                        append(formattedTime)
+                                    },
                                     style = MaterialTheme.typography.bodyLarge
                                 )
                             }
@@ -251,7 +264,12 @@ fun ImageCarousel(
 
                             if (selectedEvent!!.ponentes.isNotEmpty()) {
                                 Text(
-                                    text = "Ponentes: ${selectedEvent!!.ponentes.joinToString(", ")}",
+                                    text = buildAnnotatedString {
+                                        withStyle(style = SpanStyle(fontStyle = FontStyle.Italic)) {
+                                            append("Ponentes: ")
+                                        }
+                                        append(selectedEvent!!.ponentes.joinToString(", "))
+                                    },
                                     style = MaterialTheme.typography.bodyLarge
                                 )
                             }
@@ -289,7 +307,7 @@ fun ParticipateButton(
     isParticipating: Boolean,
     onToggleParticipate: (Boolean) -> Unit
 ) {
-    val borderColor = if (isParticipating) MaterialTheme.colorScheme.onPrimaryContainer
+    val borderColor = if (isParticipating) MaterialTheme.colorScheme.onSecondaryContainer
     else MaterialTheme.colorScheme.outline
 
     FilterChip(
@@ -304,9 +322,9 @@ fun ParticipateButton(
         enabled = true,
         modifier = Modifier.scale(0.9f),
         colors = FilterChipDefaults.filterChipColors(
-            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
+            selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+            selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            selectedLeadingIconColor = MaterialTheme.colorScheme.onSecondaryContainer
         ),
         leadingIcon = if (isParticipating) {
             {

@@ -287,7 +287,6 @@ fun SelectDatePicker(
 fun SelectTimePicker(
     selectedTime: Pair<Int, Int>,
     onTimeSelected: (Pair<Int, Int>) -> Unit,
-    validationError: String? = null,
     enabled: Boolean
 ) {
     var showTimePicker by remember { mutableStateOf(false) }
@@ -299,11 +298,7 @@ fun SelectTimePicker(
         Text(
             text = formatHourMinute(selectedTime.first, selectedTime.second),
             style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Bold,
-            color = if (validationError != null)
-                MaterialTheme.colorScheme.error
-            else
-                MaterialTheme.colorScheme.primary
+            fontWeight = FontWeight.Bold
         )
     }
 
@@ -464,7 +459,7 @@ fun MultipleSpeakersField(
             ),
             modifier = Modifier
                 .padding(start = 48.dp, top = 4.dp)
-                .clickable(enabled = enabled) {
+                .clickable(enabled = enabled && displayedSpeakers.last().isNotBlank()) {
                     val updated = displayedSpeakers.toMutableList()
                     updated.add("")
                     onSpeakersChange(updated)

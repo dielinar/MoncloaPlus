@@ -196,7 +196,7 @@ fun MainScreen(
                     navController = navController,
                     startDestination = HOME_SCREEN
                 ) {
-                    mainGraph()
+                    mainGraph(navController)
                 }
             }
         }
@@ -204,7 +204,7 @@ fun MainScreen(
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-fun NavGraphBuilder.mainGraph() {
+fun NavGraphBuilder.mainGraph(navController: NavHostController) {
 
     composable(HOME_SCREEN) {
         HomeScreen()
@@ -223,9 +223,9 @@ fun NavGraphBuilder.mainGraph() {
     }
 
     composable(RESERVATION_SCREEN) {
-        val navController = rememberNavController()
+        val navigationController = rememberNavController()
         ReservationScreen(
-            navController = navController
+            navController = navigationController
         )
     }
 
@@ -238,7 +238,7 @@ fun NavGraphBuilder.mainGraph() {
     }
 
     composable(CREATE_EVENT_SCREEN) {
-        CreateEventScreen()
+        CreateEventScreen(navController = navController)
     }
 
 }

@@ -29,6 +29,12 @@ class EventViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _isSaving = MutableStateFlow(false)
+    val isSaving: StateFlow<Boolean> = _isSaving.asStateFlow()
+
+    private val _eventCreated = MutableStateFlow(false)
+    val eventCreated: StateFlow<Boolean> = _eventCreated.asStateFlow()
+
     private val _title = MutableStateFlow("")
     val title: StateFlow<String> = _title.asStateFlow()
 
@@ -59,7 +65,7 @@ class EventViewModel @Inject constructor(
 
     fun createEvent(type: EventType, subType: Any?, isAllDay: Boolean) {
         launchCatching {
-            _isLoading.value = true
+            _isSaving.value = true
 
             val currentUser = storageService.getUser(accountService.currentUserId)
 
@@ -83,8 +89,8 @@ class EventViewModel @Inject constructor(
             val newEvent = eventService.createEvent(event, imageUri.value)
 
             addToEventsMap(newEvent)
-            _isLoading.value = false
-            resetValues()
+            _isSaving.value = false
+            _eventCreated.value = true
             SnackbarManager.showMessage("Evento creado correctamente.")
         }
     }
@@ -122,15 +128,6 @@ class EventViewModel @Inject constructor(
             updateEventParticipants(eventId, accountService.currentUserId, add = false)
             SnackbarManager.showMessage("Has cancelado tu participación.")
         }
-    }
-
-    private fun resetValues() {
-        updateTitle("")
-        updateDescription("")
-        updateSpeakers(emptyList())
-        updateDate(System.currentTimeMillis())
-        updateEventTime(getDefaultStartTime())
-        _imageUri.value = null
     }
 
     private fun addToEventsMap(event: Event) {
