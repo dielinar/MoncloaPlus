@@ -24,6 +24,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -35,8 +36,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -45,33 +49,50 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.example.moncloaplus.R
 import com.example.moncloaplus.model.Event
 import com.example.moncloaplus.model.EventViewModel
+import com.example.moncloaplus.model.User
+import com.example.moncloaplus.model.UserViewModel
 import com.example.moncloaplus.screens.reservation.convertMillisToDate
 import com.example.moncloaplus.screens.reservation.formatHourMinute
+import kotlinx.coroutines.delay
 import java.util.Calendar
 
 @Composable
 fun ImageCarousel(
     events: List<Event>,
-    viewModel: EventViewModel,
-    currentUserId: String
+    eventViewModel: EventViewModel,
+    userViewModel: UserViewModel,
+    currentUser: User
 ) {
     var showImageDialog by remember { mutableStateOf(false) }
     var selectedImageUrl by remember { mutableStateOf("") }
+    var showParticipantsDialog by remember { mutableStateOf(false) }
 
     var showInfoDialog by remember { mutableStateOf(false) }
     var selectedEvent by remember { mutableStateOf<Event?>(null) }
+
+    val participants = remember { mutableStateListOf<User>() }
+
+    var currentTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(1000)
+            currentTime = System.currentTimeMillis()
+        }
+    }
 
     LazyRow(
         modifier = Modifier
@@ -82,7 +103,7 @@ fun ImageCarousel(
     ) {
         items(events) { event ->
             val isParticipating by remember(event.asistentes) {
-                derivedStateOf { currentUserId in event.asistentes }
+                derivedStateOf { currentUser.id in event.asistentes }
             }
 
             Card(
@@ -139,16 +160,32 @@ fun ImageCarousel(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        ParticipateButton(
-                            isParticipating = isParticipating,
-                            onToggleParticipate = { participate ->
-                                if (participate) {
-                                    viewModel.addParticipant(event.id)
-                                } else {
-                                    viewModel.removeParticipant(event.id)
+                        if (currentUser.isAdmin()) {
+                            TextButton(onClick = {
+                                participants.clear()
+                                event.asistentes.forEach{ userId ->
+                                    userViewModel.getUser(userId) { user ->
+                                        user?.let { participants.add(it) }
+                                    }
                                 }
+                                selectedEvent = event
+                                showParticipantsDialog = true
+                            }) {
+                                Text("Ver participantes", color = MaterialTheme.colorScheme.scrim)
                             }
-                        )
+                        } else {
+                            ParticipateButton(
+                                isParticipating = isParticipating,
+                                onToggleParticipate = { participate ->
+                                    if (participate) {
+                                        eventViewModel.addParticipant(event.id)
+                                    } else {
+                                        eventViewModel.removeParticipant(event.id)
+                                    }
+                                },
+                                enabled = event.fecha.toDate().time > currentTime
+                            )
+                        }
 
                         IconButton(
                             onClick = {
@@ -159,6 +196,7 @@ fun ImageCarousel(
                             Icon(
                                 imageVector = Icons.Outlined.Info,
                                 contentDescription = "Info",
+                                modifier = Modifier.size(20.dp),
                                 tint = MaterialTheme.colorScheme.outline
                             )
                         }
@@ -300,31 +338,64 @@ fun ImageCarousel(
         }
     }
 
+    if (showParticipantsDialog && selectedEvent != null) {
+        AlertDialog(
+            onDismissRequest = { showParticipantsDialog = false },
+            icon = { Icon(painterResource(R.drawable.group_24px), null) },
+            title = { Text("${participants.size} participantes", textAlign = TextAlign.Center) },
+            text = {
+                if (participants.isNotEmpty()) {
+                    Column {
+                        participants.forEach{ user ->
+                            Text(
+                                text = "${user.firstName} ${user.firstSurname} ${user.secondSurname}",
+                                modifier = Modifier.padding(vertical = 4.dp)
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showParticipantsDialog = false }) {
+                    Text("Cerrar")
+                }
+            }
+        )
+    }
+
 }
 
 @Composable
 fun ParticipateButton(
     isParticipating: Boolean,
-    onToggleParticipate: (Boolean) -> Unit
+    onToggleParticipate: (Boolean) -> Unit,
+    enabled: Boolean
 ) {
-    val borderColor = if (isParticipating) MaterialTheme.colorScheme.onSecondaryContainer
+    val borderColor = if (isParticipating) MaterialTheme.colorScheme.onPrimaryContainer
     else MaterialTheme.colorScheme.outline
 
     FilterChip(
         onClick = { onToggleParticipate(!isParticipating) },
         label = {
             Text(
-                text = if (isParticipating) "Apuntado" else "Apuntarse",
+                text = if (enabled) {
+                    if (isParticipating) "Apuntado" else "Apuntarse"
+                } else {
+                    if (isParticipating) "Asistí" else "No asistí"
+                },
                 color = borderColor
             )
         },
         selected = isParticipating,
-        enabled = true,
-        modifier = Modifier.scale(0.9f),
+        enabled = enabled,
+        modifier = Modifier.scale(0.8f),
         colors = FilterChipDefaults.filterChipColors(
-            selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-            selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            selectedLeadingIconColor = MaterialTheme.colorScheme.onSecondaryContainer
+            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
+            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            disabledSelectedContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
+            disabledLeadingIconColor = if (isParticipating) MaterialTheme.colorScheme.onPrimaryContainer
+            else MaterialTheme.colorScheme.outline
         ),
         leadingIcon = if (isParticipating) {
             {

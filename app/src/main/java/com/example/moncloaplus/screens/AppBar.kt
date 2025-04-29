@@ -29,8 +29,8 @@ fun AppBar(drawerState: DrawerState, scope: CoroutineScope, navController: NavHo
 
     CenterAlignedTopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            titleContentColor = MaterialTheme.colorScheme.primary,
+            containerColor = MaterialTheme.colorScheme.primary,
+            titleContentColor = MaterialTheme.colorScheme.onPrimary,
         ),
         title = {
             Text(
@@ -61,6 +61,7 @@ fun AppBar(drawerState: DrawerState, scope: CoroutineScope, navController: NavHo
                 Icon(
                     imageVector = Icons.Filled.Menu,
                     contentDescription = "Menu",
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
         },
@@ -68,7 +69,8 @@ fun AppBar(drawerState: DrawerState, scope: CoroutineScope, navController: NavHo
             IconButton(onClick = { /* do something */ }) {
                 Icon(
                     imageVector = Icons.Filled.AccountCircle,
-                    contentDescription = "Account center"
+                    contentDescription = "Account center",
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
         },
