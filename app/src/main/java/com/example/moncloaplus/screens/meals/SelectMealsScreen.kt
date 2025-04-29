@@ -31,16 +31,19 @@ fun SelectMealsScreen(
     val currentWeekStart by viewModel.currentWeekStart.collectAsState()
     val hasChanges by viewModel.hasChanges.collectAsState()
     val isTemplateApplied by viewModel.isTemplateApplied.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
 
     val currentDate = LocalDate.now()
-    val selectedWeekStartDate = LocalDate.parse(currentWeekStart, DateTimeFormatter.ofPattern(
-        DATE_PATTERN
-    ))
+    val selectedWeekStartDate = LocalDate.parse(currentWeekStart, DateTimeFormatter.ofPattern(DATE_PATTERN))
     val isPastWeek = selectedWeekStartDate.isBefore(currentDate.with(DayOfWeek.MONDAY))
 
     val snackbarMessage by SnackbarManager.snackbarMessages.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        viewModel.getWeekMeals()
+    }
 
     LaunchedEffect(snackbarMessage) {
         snackbarMessage?.let {
@@ -51,74 +54,68 @@ fun SelectMealsScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(10.dp)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.SpaceEvenly,
-        horizontalAlignment = Alignment.Start
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(4.dp),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
+    if (isLoading) {
+        LoadingIndicator()
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(10.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.SpaceEvenly,
+            horizontalAlignment = Alignment.Start
         ) {
-            SaveMealsButton (
-                buttonText = stringResource(R.string.guardar_comidas),
-                onSave = { viewModel.saveWeek(currentWeekStart) },
-                enabled = hasChanges
-            )
-            Spacer(Modifier.weight(1f))
-            ClearMealsButton (
-                onClear = { viewModel.clearMeals() },
-                title = stringResource(R.string.borrar_comidas),
-                dialog = stringResource(R.string.confirmar_borrar_comidas),
-                enabled = !isPastWeek
-            )
-            ApplyMealsTemplateFilterChip(
-                isSelected = isTemplateApplied,
-                onCheckedChange = { isChecked ->
-                    viewModel.toggleTemplate(isChecked)
-                },
-                enabled = !isPastWeek
-            )
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(4.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            SingleChoiceSegmentedButton(
-                NAVIGATION_DATE_BAR_OPTIONS,
-                onOptionClick = {
-                    when (it) {
-                        NAVIGATION_DATE_BAR_OPTIONS[0] -> viewModel.previousWeek()
-                        NAVIGATION_DATE_BAR_OPTIONS[1] -> viewModel.setCurrentWeek()
-                        NAVIGATION_DATE_BAR_OPTIONS[2] -> viewModel.nextWeek()
-                    }
-                },
-                isTemplateApplied = isTemplateApplied
-            )
-        }
-
-        viewModel.getWeekDays(currentWeekStart).forEach { (day, date) ->
-            MealScheduleRow(day, date, selectedMeals[day] ?: emptyMap()) { mealType, value ->
-                viewModel.updateMeal(day, mealType, value)
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(4.dp),
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                SaveMealsButton (
+                    buttonText = stringResource(R.string.guardar_comidas),
+                    onSave = { viewModel.saveWeek(currentWeekStart) },
+                    enabled = hasChanges
+                )
+                Spacer(Modifier.weight(1f))
+                ClearMealsButton (
+                    onClear = { viewModel.clearMeals() },
+                    title = stringResource(R.string.borrar_comidas),
+                    dialog = stringResource(R.string.confirmar_borrar_comidas),
+                    enabled = !isPastWeek
+                )
+                ApplyMealsTemplateFilterChip(
+                    isSelected = isTemplateApplied,
+                    onCheckedChange = { isChecked ->
+                        viewModel.toggleTemplate(isChecked)
+                    },
+                    enabled = !isPastWeek
+                )
             }
+
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(4.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                SingleChoiceSegmentedButton(
+                    NAVIGATION_DATE_BAR_OPTIONS,
+                    onOptionClick = {
+                        when (it) {
+                            NAVIGATION_DATE_BAR_OPTIONS[0] -> viewModel.previousWeek()
+                            NAVIGATION_DATE_BAR_OPTIONS[1] -> viewModel.setCurrentWeek()
+                            NAVIGATION_DATE_BAR_OPTIONS[2] -> viewModel.nextWeek()
+                        }
+                    },
+                    isTemplateApplied = isTemplateApplied
+                )
+            }
+
+            viewModel.getWeekDays(currentWeekStart).forEach { (day, date) ->
+                MealScheduleRow(day, date, selectedMeals[day] ?: emptyMap()) { mealType, value ->
+                    viewModel.updateMeal(day, mealType, value)
+                }
+            }
+
         }
-
     }
+
 }
-
-
-
-
-
-
-
-
-
-
-

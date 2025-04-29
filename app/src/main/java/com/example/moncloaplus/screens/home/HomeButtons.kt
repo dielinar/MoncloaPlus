@@ -35,6 +35,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -76,6 +77,11 @@ fun ImageCarousel(
         contentPadding = PaddingValues(horizontal = 16.dp)
     ) {
         items(events) { event ->
+
+            val isParticipating by remember(event.asistentes) {
+                derivedStateOf { currentUserId in event.asistentes }
+
+            }
             Card(
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier
@@ -131,9 +137,14 @@ fun ImageCarousel(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         ParticipateButton(
-                            event = event,
-                            currentUserId = currentUserId,
-                            viewModel = viewModel
+                            isParticipating = isParticipating,
+                            onToggleParticipate = { participate ->
+                                if (participate) {
+                                    viewModel.addParticipant(event.id)
+                                } else {
+                                    viewModel.removeParticipant(event.id)
+                                }
+                            }
                         )
 
                         IconButton(
@@ -219,15 +230,22 @@ fun ImageCarousel(
 
                             Spacer(modifier = Modifier.height(8.dp))
 
-                            val calendar = Calendar.getInstance().apply { timeInMillis = eventMillis }
-                            val formattedTime = formatHourMinute(
-                                hour = calendar.get(Calendar.HOUR_OF_DAY),
-                                minute = calendar.get(Calendar.MINUTE)
-                            )
-                            Text(
-                                text = "Hora: $formattedTime",
-                                style = MaterialTheme.typography.bodyLarge
-                            )
+                            if (selectedEvent!!.allDay) {
+                                Text(
+                                    text = "Todo el día",
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            } else {
+                                val calendar = Calendar.getInstance().apply { timeInMillis = eventMillis }
+                                val formattedTime = formatHourMinute(
+                                    hour = calendar.get(Calendar.HOUR_OF_DAY),
+                                    minute = calendar.get(Calendar.MINUTE)
+                                )
+                                Text(
+                                    text = "Hora: $formattedTime",
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            }
 
                             Spacer(modifier = Modifier.height(8.dp))
 
@@ -268,27 +286,17 @@ fun ImageCarousel(
 
 @Composable
 fun ParticipateButton(
-    event: Event,
-    currentUserId: String,
-    viewModel: EventViewModel
+    isParticipating: Boolean,
+    onToggleParticipate: (Boolean) -> Unit
 ) {
-    var isParticipating by remember { mutableStateOf(currentUserId in event.asistentes) }
-
     val borderColor = if (isParticipating) MaterialTheme.colorScheme.onPrimaryContainer
     else MaterialTheme.colorScheme.outline
 
     FilterChip(
-        onClick = {
-            isParticipating = !isParticipating
-            if (isParticipating) {
-                viewModel.addParticipant(event.id)
-            } else {
-                viewModel.removeParticipant(event.id)
-            }
-        },
+        onClick = { onToggleParticipate(!isParticipating) },
         label = {
             Text(
-                text = if (isParticipating) "Apuntado" else "Asistiré",
+                text = if (isParticipating) "Apuntado" else "Apuntarse",
                 color = borderColor
             )
         },

@@ -3,6 +3,7 @@ package com.example.moncloaplus.screens.create_event
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.focusable
@@ -13,7 +14,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
@@ -22,6 +25,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -39,6 +43,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
@@ -57,6 +62,7 @@ fun CreateEventScreen(
     val imageUri by viewModel.imageUri.collectAsState()
     val date by viewModel.date.collectAsState()
     val eventTime by viewModel.eventTime.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
 
     val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
@@ -74,23 +80,30 @@ fun CreateEventScreen(
         focusRequester.requestFocus()
     }
 
-    Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState).padding(bottom = 48.dp)) {
-
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .verticalScroll(scrollState)
+        .padding(bottom = 48.dp)
+        .imePadding()
+        .animateContentSize()
+    ) {
         // Save button
         Box(modifier = Modifier.fillMaxWidth().padding(top = 16.dp, end = 24.dp)) {
-            SaveEventButton(
-                onSave = { viewModel.createEvent(eventType, eventSubType) },
-//                onSave = {
-//                    val finalTime = if (isAllDay) null else eventTime
-//                    viewModel.saveEvent(
-//                        type = selectedType,
-//                        isAllDay = isAllDay,
-//                        time = finalTime
-//                    )
-//                }
-                enabled = true,
-                modifier = Modifier.align(Alignment.TopEnd)
-            )
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .align(Alignment.TopEnd),
+                    strokeWidth = 3.dp,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            } else {
+                SaveEventButton(
+                    onSave = { viewModel.createEvent(eventType, eventSubType, isAllDay) },
+                    enabled = true,
+                    modifier = Modifier.align(Alignment.TopEnd)
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -107,8 +120,10 @@ fun CreateEventScreen(
                 textStyle = MaterialTheme.typography.headlineMedium.copy(
                     color = MaterialTheme.colorScheme.onSurface
                 ),
+                enabled = !isLoading,
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                 keyboardOptions = KeyboardOptions.Default.copy(
+                    capitalization = KeyboardCapitalization.Sentences,
                     imeAction = ImeAction.Done
                 ),
                 keyboardActions = KeyboardActions(
@@ -137,14 +152,19 @@ fun CreateEventScreen(
             EventTypeSelector(
                 selectedType = eventType,
                 selectedSubCategory = eventSubType,
-                onTypeSelected = { selected ->
-                    eventType = selected
-                    eventSubType = null
+                onTypeSelected = {
+                    if (!isLoading) {
+                        eventType = it
+                        eventSubType = null
+                    }
                 },
                 onSubCategorySelected = { parentType, subType ->
-                    eventType = parentType
-                    eventSubType = subType
-                }
+                    if (!isLoading) {
+                        eventType = parentType
+                        eventSubType = subType
+                    }
+                },
+                enabled = !isLoading
             )
         }
 
@@ -154,7 +174,8 @@ fun CreateEventScreen(
         Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp)) {
             AllDayOption(
                 isAllDay = isAllDay,
-                onAllDayChange = { isAllDay = it }
+                onAllDayChange = { isAllDay = it },
+                enabled = !isLoading
             )
         }
 
@@ -162,13 +183,15 @@ fun CreateEventScreen(
         Row(modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 14.dp)) {
             SelectDatePicker(
                 selectedDate = date,
-                onDateSelected = { viewModel.updateDate(it) }
+                onDateSelected = { viewModel.updateDate(it) },
+                enabled = !isLoading
             )
             Spacer(modifier = Modifier.weight(1f))
             if (!isAllDay) {
                 SelectTimePicker(
                     selectedTime = eventTime,
-                    onTimeSelected = { viewModel.updateEventTime(it) }
+                    onTimeSelected = { viewModel.updateEventTime(it) },
+                    enabled = !isLoading
                 )
             }
         }
@@ -179,6 +202,7 @@ fun CreateEventScreen(
         MultipleSpeakersField(
             speakers = speakers,
             onSpeakersChange = { viewModel.updateSpeakers(it) },
+            enabled = !isLoading,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
@@ -189,10 +213,11 @@ fun CreateEventScreen(
         // Description text field
         LabeledTextField(
             value = description,
-            onValueChange = { viewModel.updateDescription(it) },
+            onValueChange = { if (!isLoading) viewModel.updateDescription(it) },
             placeholder = "Añade una descripción",
             iconResId = R.drawable.notes_24px,
             contentDescription = "Descripción",
+            enabled = !isLoading,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp, vertical = 4.dp)
@@ -207,7 +232,8 @@ fun CreateEventScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Button(
-                    onClick = { imagePickerLauncher.launch("image/*") },
+                    onClick = { if (!isLoading) imagePickerLauncher.launch("image/*") },
+                    enabled = !isLoading,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.secondaryContainer,
                         contentColor = MaterialTheme.colorScheme.onSecondaryContainer
@@ -223,7 +249,7 @@ fun CreateEventScreen(
                         contentDescription = "Cartel del evento",
                         modifier = Modifier
                             .width(200.dp)
-                            .height(300.dp)
+                            .height(280.dp)
                             .border(1.dp, MaterialTheme.colorScheme.outline)
                     )
                 }

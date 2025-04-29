@@ -13,7 +13,6 @@ import com.google.firebase.Timestamp
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -58,7 +57,7 @@ class EventViewModel @Inject constructor(
     fun updateDate(newDate: Long) { _date.value = newDate }
     fun updateEventTime(newEventTime: Pair<Int, Int>) { _eventTime.value = newEventTime }
 
-    fun createEvent(type: EventType, subType: Any?) {
+    fun createEvent(type: EventType, subType: Any?, isAllDay: Boolean) {
         launchCatching {
             _isLoading.value = true
 
@@ -68,6 +67,7 @@ class EventViewModel @Inject constructor(
                 id = "",
                 titulo = _title.value,
                 fecha = getDateTimestamp(),
+                allDay = isAllDay,
                 descripcion = _description.value,
                 tipo = type,
                 subtipo = when (type) {

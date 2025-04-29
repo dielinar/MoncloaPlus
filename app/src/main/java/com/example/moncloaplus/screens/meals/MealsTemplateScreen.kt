@@ -26,6 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.moncloaplus.R
 import com.example.moncloaplus.SnackbarManager
 import com.example.moncloaplus.model.WeekMealsViewModel
+import com.example.moncloaplus.screens.reservation.LoadingIndicator
 import com.example.moncloaplus.utils.WEEK_DAYS
 import kotlinx.coroutines.launch
 
@@ -35,13 +36,17 @@ fun MealsTemplateScreen(
     modifier: Modifier = Modifier,
     viewModel: WeekMealsViewModel = hiltViewModel()
 ) {
-
     val templateMeals by viewModel.templateMeals.collectAsState()
     val hasTemplateChanges by viewModel.hasTemplateChanges.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
     val snackbarMessage by SnackbarManager.snackbarMessages.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        viewModel.getTemplate()
+    }
 
     LaunchedEffect(snackbarMessage) {
         snackbarMessage?.let {
@@ -52,37 +57,41 @@ fun MealsTemplateScreen(
         }
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(10.dp)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.SpaceEvenly,
-        horizontalAlignment = Alignment.Start
-    ) {
-
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(4.dp),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
+    if (isLoading) {
+        LoadingIndicator()
+    } else {
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(10.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.SpaceEvenly,
+            horizontalAlignment = Alignment.Start
         ) {
-            SaveMealsButton (
-                buttonText = stringResource(R.string.guardar_plantilla),
-                onSave = { viewModel.saveTemplate() },
-                enabled = hasTemplateChanges,
-            )
-            Spacer(Modifier.weight(1f))
-            ClearMealsButton (
-                onClear = { viewModel.clearTemplate() },
-                title = stringResource(R.string.borrar_plantilla),
-                dialog = stringResource(R.string.descripcion_borrar_plantilla),
-                enabled = true
-            )
-        }
 
-        WEEK_DAYS.forEach { day ->
-            MealScheduleRow(day, null, templateMeals[day] ?: emptyMap()) { mealType, value ->
-                viewModel.updateTemplate(day, mealType, value)
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(4.dp),
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                SaveMealsButton (
+                    buttonText = stringResource(R.string.guardar_plantilla),
+                    onSave = { viewModel.saveTemplate() },
+                    enabled = hasTemplateChanges,
+                )
+                Spacer(Modifier.weight(1f))
+                ClearMealsButton (
+                    onClear = { viewModel.clearTemplate() },
+                    title = stringResource(R.string.borrar_plantilla),
+                    dialog = stringResource(R.string.descripcion_borrar_plantilla),
+                    enabled = true
+                )
+            }
+
+            WEEK_DAYS.forEach { day ->
+                MealScheduleRow(day, null, templateMeals[day] ?: emptyMap()) { mealType, value ->
+                    viewModel.updateTemplate(day, mealType, value)
+                }
             }
         }
     }

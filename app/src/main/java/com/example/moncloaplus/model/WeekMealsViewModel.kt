@@ -48,10 +48,8 @@ class WeekMealsViewModel @Inject constructor(
     private val _isTemplateApplied = MutableStateFlow(false)
     val isTemplateApplied: StateFlow<Boolean> = _isTemplateApplied.asStateFlow()
 
-    init {
-        getWeekMeals()
-        getTemplate()
-    }
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     fun updateMeal(day: String, mealType: String, value: String) {
         _selectedMeals.update { currentMeals ->
@@ -87,12 +85,14 @@ class WeekMealsViewModel @Inject constructor(
         }
     }
 
-    private fun getWeekMeals() {
+    fun getWeekMeals() {
         launchCatching {
+            _isLoading.value = true
             val weekMeals = mealsService.getWeekData(_currentWeekStart.value)
             _selectedMeals.value = weekMeals?.meals
                 ?.mapValues { it.value.toMutableMap() }
                 ?.toMutableMap() ?: mutableMapOf()
+            _isLoading.value = false
         }
     }
 
@@ -138,12 +138,14 @@ class WeekMealsViewModel @Inject constructor(
         }
     }
 
-    private fun getTemplate() {
+    fun getTemplate() {
         launchCatching {
+            _isLoading.value = true
             val template = mealsService.getUserTemplate()
             if (template != null) {
                 _templateMeals.value = template.meals.mapValues { it.value.toMutableMap() }.toMutableMap()
             }
+            _isLoading.value = false
         }
     }
 

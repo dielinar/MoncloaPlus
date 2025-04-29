@@ -1,6 +1,7 @@
 package com.example.moncloaplus.screens.create_event
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,10 +12,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -25,7 +26,6 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -42,6 +42,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,6 +51,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.moncloaplus.R
@@ -60,6 +62,7 @@ import com.example.moncloaplus.screens.reservation.AdvancedTimePickerDialog
 import com.example.moncloaplus.screens.reservation.DatePickerModal
 import com.example.moncloaplus.screens.reservation.formatHourMinute
 import com.example.moncloaplus.screens.reservation.toFormattedDate
+import kotlinx.coroutines.launch
 
 @Composable
 fun SaveEventButton(
@@ -90,7 +93,8 @@ fun EventTypeSelector(
     selectedType: EventType,
     selectedSubCategory: Any?,
     onTypeSelected: (EventType) -> Unit,
-    onSubCategorySelected: (EventType, Any) -> Unit
+    onSubCategorySelected: (EventType, Any) -> Unit,
+    enabled: Boolean
 ) {
     var expandedType by remember { mutableStateOf<EventType?>(null) }
 
@@ -106,11 +110,13 @@ fun EventTypeSelector(
             ExposedDropdownMenuBox(
                 expanded = isExpanded,
                 onExpandedChange = {
-                    if (isExpandable) {
-                        expandedType = if (isExpanded) null else type
-                    } else {
-                        onTypeSelected(type)
-                        expandedType = null
+                    if (enabled) {
+                        if (isExpandable) {
+                            expandedType = if (isExpanded) null else type
+                        } else {
+                            onTypeSelected(type)
+                            expandedType = null
+                        }
                     }
                 },
                 modifier = Modifier
@@ -128,14 +134,17 @@ fun EventTypeSelector(
                 }
 
                 AssistChip(
-                    onClick = { // <- Acá también lo controlamos
-                        if (isExpandable) {
-                            expandedType = if (isExpanded) null else type
-                        } else {
-                            onTypeSelected(type)
-                            expandedType = null
+                    onClick = {
+                        if (enabled) {
+                            if (isExpandable) {
+                                expandedType = if (isExpanded) null else type
+                            } else {
+                                onTypeSelected(type)
+                                expandedType = null
+                            }
                         }
                     },
+                    enabled = enabled,
                     label = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
@@ -150,13 +159,24 @@ fun EventTypeSelector(
                             Icon(
                                 imageVector = Icons.Outlined.ArrowDropDown,
                                 contentDescription = "Seleccionar subcategoría",
-                                tint = if (selectedType == type) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.outline
+                                tint = when {
+                                    !enabled -> {
+                                        if (selectedType == type)
+                                            MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.6f)
+                                        else
+                                            MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
+                                    }
+                                    selectedType == type -> MaterialTheme.colorScheme.onTertiaryContainer
+                                    else -> MaterialTheme.colorScheme.outline
+                                }
                             )
                         }
                     },
                     colors = AssistChipDefaults.assistChipColors(
                         containerColor = if (selectedType == type) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.surface,
-                        labelColor = if (selectedType == type) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.outline
+                        labelColor = if (selectedType == type) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.outline,
+                        disabledContainerColor = if (selectedType == type) MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.6f) else MaterialTheme.colorScheme.surface.copy(alpha = 0.6f),
+                        disabledLabelColor = if (selectedType == type) MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.6f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
                     ),
                     border = if (selectedType == type) null else BorderStroke(
                         width = 0.5.dp,
@@ -203,7 +223,8 @@ fun EventTypeSelector(
 @Composable
 fun AllDayOption(
     isAllDay: Boolean,
-    onAllDayChange: (Boolean) -> Unit
+    onAllDayChange: (Boolean) -> Unit,
+    enabled: Boolean
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -226,7 +247,8 @@ fun AllDayOption(
 
         Switch(
             checked = isAllDay,
-            onCheckedChange = onAllDayChange
+            onCheckedChange = onAllDayChange,
+            enabled = enabled
         )
     }
 }
@@ -234,11 +256,16 @@ fun AllDayOption(
 @Composable
 fun SelectDatePicker(
     selectedDate: Long,
-    onDateSelected: (Long) -> Unit
+    onDateSelected: (Long) -> Unit,
+    enabled: Boolean
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
 
-    TextButton(onClick = { showDatePicker = true }, modifier = Modifier.padding(start = 36.dp)) {
+    TextButton(
+        onClick = { showDatePicker = true },
+        modifier = Modifier.padding(start = 36.dp),
+        enabled = enabled
+    ) {
         Text(text = selectedDate.toFormattedDate(), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
     }
 
@@ -260,11 +287,15 @@ fun SelectDatePicker(
 fun SelectTimePicker(
     selectedTime: Pair<Int, Int>,
     onTimeSelected: (Pair<Int, Int>) -> Unit,
-    validationError: String? = null
+    validationError: String? = null,
+    enabled: Boolean
 ) {
     var showTimePicker by remember { mutableStateOf(false) }
 
-    TextButton(onClick = { showTimePicker = true }) {
+    TextButton(
+        onClick = { showTimePicker = true },
+        enabled = enabled
+    ) {
         Text(
             text = formatHourMinute(selectedTime.first, selectedTime.second),
             style = MaterialTheme.typography.bodyLarge,
@@ -309,6 +340,7 @@ fun SelectTimePicker(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LabeledTextField(
     value: String,
@@ -316,20 +348,33 @@ fun LabeledTextField(
     placeholder: String,
     iconResId: Int,
     contentDescription: String,
+    enabled: Boolean,
     modifier: Modifier = Modifier
 ) {
     val focusManager = LocalFocusManager.current
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val coroutineScope = rememberCoroutineScope()
 
-    Box(modifier = modifier) {
+    Box(
+        modifier = modifier
+            .bringIntoViewRequester(bringIntoViewRequester)
+    ) {
         BasicTextField(
             value = value,
-            onValueChange = onValueChange,
+            onValueChange =  {
+                onValueChange(it)
+                coroutineScope.launch {
+                    bringIntoViewRequester.bringIntoView()
+                }
+            },
+            enabled = enabled,
             modifier = Modifier.fillMaxWidth(),
             textStyle = MaterialTheme.typography.bodyLarge.copy(
                 color = MaterialTheme.colorScheme.onSurface
             ),
             cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
             keyboardOptions = KeyboardOptions.Default.copy(
+                capitalization = KeyboardCapitalization.Sentences,
                 imeAction = ImeAction.Done
             ),
             keyboardActions = KeyboardActions(
@@ -370,6 +415,7 @@ fun LabeledTextField(
 fun MultipleSpeakersField(
     speakers: List<String>,
     onSpeakersChange: (List<String>) -> Unit,
+    enabled: Boolean,
     modifier: Modifier = Modifier
 ) {
     val displayedSpeakers = speakers.ifEmpty { listOf("") }
@@ -390,6 +436,7 @@ fun MultipleSpeakersField(
                     placeholder = "Nombre del ponente",
                     iconResId = R.drawable.person_24px,
                     contentDescription = "Ponente",
+                    enabled = enabled,
                     modifier = Modifier.weight(1f)
                 )
                 IconButton(
@@ -397,7 +444,8 @@ fun MultipleSpeakersField(
                         val updated = displayedSpeakers.toMutableList()
                         updated.removeAt(index)
                         onSpeakersChange(updated)
-                    }
+                    },
+                    enabled = enabled
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
@@ -416,7 +464,7 @@ fun MultipleSpeakersField(
             ),
             modifier = Modifier
                 .padding(start = 48.dp, top = 4.dp)
-                .clickable {
+                .clickable(enabled = enabled) {
                     val updated = displayedSpeakers.toMutableList()
                     updated.add("")
                     onSpeakersChange(updated)

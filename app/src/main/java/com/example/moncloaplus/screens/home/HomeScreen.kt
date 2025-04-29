@@ -12,6 +12,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.moncloaplus.model.EventType
@@ -34,7 +35,7 @@ fun HomeScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(vertical = 32.dp),
+            .padding(top = 16.dp, bottom = 32.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
         allEvents.forEach{ (eventTypeOrdinal, events) ->
@@ -59,8 +60,9 @@ fun HomeScreen(
                         )
                     } else {
                         Text(
-                            text = "No hay eventos disponibles",
+                            text = "No hay eventos disponibles.",
                             style = MaterialTheme.typography.bodyMedium,
+                            fontStyle = FontStyle.Italic,
                             modifier = Modifier.padding(horizontal = 16.dp)
                         )
                     }
