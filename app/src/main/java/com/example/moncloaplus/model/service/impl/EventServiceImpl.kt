@@ -18,14 +18,9 @@ import javax.inject.Inject
 
 class EventServiceImpl @Inject constructor(
     db: FirebaseFirestore,
-    accService: AccountServiceImpl,
     private val storage: FirebaseStorage,
     private val storageService: StorageServiceImpl
 ): EventService {
-
-    private val userId = accService.currentUserId
-
-    private val usersCollection = db.collection("users")
 
     private val eventsCollection = db.collection("events")
 

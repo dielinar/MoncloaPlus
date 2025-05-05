@@ -23,10 +23,6 @@ class PlusAppState(
         }
     }
 
-    fun popUp() {
-        navController.popBackStack()
-    }
-
     fun navigate(route: String) {
         navController.navigate(route) { launchSingleTop = true }
     }
@@ -44,4 +40,5 @@ class PlusAppState(
             popUpTo(0) { inclusive = true }
         }
     }
+
 }

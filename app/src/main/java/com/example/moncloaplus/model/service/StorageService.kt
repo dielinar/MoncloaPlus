@@ -1,7 +1,5 @@
 package com.example.moncloaplus.model.service
 
-import android.net.Uri
-import com.example.moncloaplus.model.UploadResult
 import com.example.moncloaplus.model.User
 
 interface StorageService {
