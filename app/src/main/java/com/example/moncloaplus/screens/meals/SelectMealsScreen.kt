@@ -15,7 +15,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.moncloaplus.R
 import com.example.moncloaplus.SnackbarManager
 import com.example.moncloaplus.model.WeekMealsViewModel
-import com.example.moncloaplus.utils.DATE_PATTERN
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDate

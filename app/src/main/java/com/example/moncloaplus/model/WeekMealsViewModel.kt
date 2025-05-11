@@ -6,8 +6,8 @@ import androidx.annotation.RequiresApi
 import com.example.moncloaplus.SnackbarManager
 import com.example.moncloaplus.model.service.MealsService
 import com.example.moncloaplus.screens.PlusViewModel
-import com.example.moncloaplus.utils.DATE_PATTERN
-import com.example.moncloaplus.utils.WEEK_DAYS
+import com.example.moncloaplus.screens.meals.DATE_PATTERN
+import com.example.moncloaplus.screens.meals.WEEK_DAYS
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

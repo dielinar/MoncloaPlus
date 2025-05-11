@@ -26,7 +26,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.moncloaplus.R
 import com.example.moncloaplus.SnackbarManager
 import com.example.moncloaplus.model.WeekMealsViewModel
-import com.example.moncloaplus.utils.WEEK_DAYS
 import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)

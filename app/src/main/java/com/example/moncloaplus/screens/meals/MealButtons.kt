@@ -56,7 +56,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.moncloaplus.R
-import com.example.moncloaplus.utils.DATE_PATTERN
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
