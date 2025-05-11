@@ -30,7 +30,6 @@ import com.example.moncloaplus.screens.reservation.DatePickerFieldToModal
 import com.example.moncloaplus.screens.reservation.GYM_INDEX
 import com.example.moncloaplus.screens.reservation.LoadingIndicator
 import com.example.moncloaplus.screens.reservation.MyReservationsButton
-import com.example.moncloaplus.screens.reservation.PADEL_INDEX
 import com.example.moncloaplus.screens.reservation.normalizeDate
 
 @Composable

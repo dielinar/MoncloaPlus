@@ -135,9 +135,7 @@ class ReservationServiceImpl @Inject constructor(
                         reservation.owner = user
                         reservation
                     }
-                } else {
-                    null
-                }
+                } else null
             }
             reservationsDeferred.awaitAll()
         } catch (e: Exception) {

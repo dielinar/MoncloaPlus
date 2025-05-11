@@ -44,15 +44,13 @@ class SignUpViewModel @Inject constructor(
     fun onSignUpClick(openAndPopUp: (String, String) -> Unit) {
         launchCatching {
             if (!_email.value.isValidEmail()) {
-                SnackbarManager.showMessage("Plantilla guardada correctamente")
+                SnackbarManager.showMessage("Correo inválido.")
                 return@launchCatching
             }
-
             if (_password.value != _confirmPassword.value) {
                 SnackbarManager.showMessage("Las contraseñas no coinciden.")
                 return@launchCatching
             }
-
             if (!_password.value.isValidPassword()) {
                 SnackbarManager.showMessage("La contraseña debe tener al menos 6 dígitos e incluir un dígito, una letra minúscula y una letra mayúscula.")
                 return@launchCatching
@@ -70,4 +68,5 @@ class SignUpViewModel @Inject constructor(
             }
         }
     }
+
 }

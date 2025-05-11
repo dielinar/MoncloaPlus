@@ -94,20 +94,16 @@ class UserViewModel @Inject constructor (
                     city = city.value,
                     degree = degree.value,
                     university = university.value,
-                    role = UserRole.NORMAL
-                )
+                    role = UserRole.NORMAL)
 
                 storageService.addUser(user)
 
-                if (user.isAdmin()) {
+                if (user.isAdmin())
                     openAndPopUp(ADMIN_SCREEN, SIGN_IN_SCREEN)
-                }
-                else if (user.isMaintainer()) {
+                else if (user.isMaintainer())
                     openAndPopUp(MAINTAINER_SCREEN, SIGN_IN_SCREEN)
-                }
-                else {
+                else
                     openAndPopUp(MAIN_SCREEN, USER_DATA_SCREEN)
-                }
             }
             catch (e: Exception) {
                 SnackbarManager.showMessage("Error desconocido al guardar los datos.")

@@ -168,7 +168,6 @@ class WeekMealsViewModel @Inject constructor(
     @RequiresApi(Build.VERSION_CODES.O)
     fun clearMeals() {
         val currentDate = LocalDate.now()
-
         _selectedMeals.update { currentMeals ->
             currentMeals.toMutableMap().apply {
                 keys.forEach { day ->
@@ -186,12 +185,10 @@ class WeekMealsViewModel @Inject constructor(
     @RequiresApi(Build.VERSION_CODES.O)
     fun toggleTemplate(isChecked: Boolean) {
         val currentDate = LocalDate.now()
-
         _isTemplateApplied.value = isChecked
 
         if (isChecked) {
             lastSelection = _selectedMeals.value.toMutableMap()
-
             _selectedMeals.update { currentMeals ->
                 currentMeals.toMutableMap().apply {
                     _templateMeals.value.forEach { (day, meals) ->

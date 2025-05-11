@@ -44,7 +44,6 @@ class FixServiceImpl @Inject constructor(
                 tamano = uploadResult.size
             )
         }
-
         val newFix = fix.copy(id = fixId, imagen = fixImage)
         fixesCollection.document(docRef.id).set(newFix).await()
 
@@ -94,8 +93,8 @@ class FixServiceImpl @Inject constructor(
                     Log.e("Firebase Storage", "Error al eliminar la imagen", e)
                 }
             }
-
             fixesCollection.document(fix.id).delete().await()
+
             Log.d("Firestore", "Arreglo eliminado correctamente: ${fix.id}")
         } catch (e: Exception) {
             Log.e("Firestore", "Error al eliminar el arreglo", e)

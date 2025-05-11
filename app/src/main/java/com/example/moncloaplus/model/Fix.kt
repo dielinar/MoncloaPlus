@@ -17,12 +17,10 @@ data class Fix (
     var owner: User? = null
 
 ) {
-
     data class FixImage(
         val nombreArchivo: String = "",
         val url: String = "",
         val path: String = "",
         val tamano: Long = 0
     )
-
 }

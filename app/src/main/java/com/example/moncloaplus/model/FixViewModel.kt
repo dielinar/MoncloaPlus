@@ -43,7 +43,6 @@ class FixViewModel @Inject constructor(
             _isLoading.value = true
 
             val currentUser = storageService.getUser(accountService.currentUserId)
-
             val fix = Fix(
                 id = "",
                 fecha = Timestamp.now(),
@@ -68,6 +67,7 @@ class FixViewModel @Inject constructor(
             fixService.deleteFix(fix)
 
             removeFromUserFixes(fix.id, fix.estado.ordinal)
+
             _isLoading.value = false
             SnackbarManager.showMessage("Arreglo eliminado correctamente.")
         }

@@ -68,7 +68,6 @@ class EventViewModel @Inject constructor(
             _isSaving.value = true
 
             val currentUser = storageService.getUser(accountService.currentUserId)
-
             val event = Event(
                 id = "",
                 titulo = _title.value,

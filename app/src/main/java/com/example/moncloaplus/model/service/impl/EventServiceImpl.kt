@@ -27,8 +27,8 @@ class EventServiceImpl @Inject constructor(
     override suspend fun createEvent(event: Event, imageUri: Uri?): Event {
         val docRef = eventsCollection.add(event).await()
         val eventId = docRef.id
-
         var eventImage = Event.EventImage()
+
         if (imageUri != null) {
             val uploadResult = uploadImage(eventId, event.tipo, imageUri)
             eventImage = Event.EventImage(
@@ -38,7 +38,6 @@ class EventServiceImpl @Inject constructor(
                 tamano = uploadResult.size
             )
         }
-
         val newEvent = event.copy(id = eventId, cartel = eventImage)
         eventsCollection.document(docRef.id).set(newEvent).await()
 

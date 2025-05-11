@@ -27,7 +27,6 @@ class StorageServiceImpl @Inject constructor(
         userCollection.document(user.id)
             .set(user)
             .addOnSuccessListener {
-
                 val defaultTemplate = WeekMeals(
                     id = "default",
                     meals = generateDefaultMeals()
@@ -50,7 +49,6 @@ class StorageServiceImpl @Inject constructor(
                     .set(defaultWeek)
                     .addOnSuccessListener { Log.d(TAG, "Semana inicial creada.") }
                     .addOnFailureListener { e -> Log.w(TAG, "Error al crear la semana inicial.", e) }
-
             }
             .addOnFailureListener { e -> Log.w(TAG, "Error guardando usuario", e) }
     }
