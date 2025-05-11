@@ -1,8 +1,6 @@
-package com.example.moncloaplus.screens.account_center
+package com.example.moncloaplus.model
 
 import com.example.moncloaplus.SIGN_IN_SCREEN
-import com.example.moncloaplus.SPLASH_SCREEN
-import com.example.moncloaplus.model.User
 import com.example.moncloaplus.model.service.AccountService
 import com.example.moncloaplus.model.service.StorageService
 import com.example.moncloaplus.screens.PlusViewModel
@@ -27,15 +25,6 @@ class AccountCenterViewModel @Inject constructor(
         }
     }
 
-    fun onUpdateDisplayNameClick(newDisplayName: String) {
-        launchCatching {
-            accountService.updateDisplayName(newDisplayName)
-            _user.value = accountService.getUserProfile()
-        }
-    }
-
-    fun onSignInClick(openScreen: (String) -> Unit) = openScreen(SIGN_IN_SCREEN)
-
     fun onSignOutClick(restartApp: (String) -> Unit) {
         launchCatching {
             accountService.signOut()
@@ -43,10 +32,4 @@ class AccountCenterViewModel @Inject constructor(
         }
     }
 
-    fun onDeleteAccountClick(restartApp: (String) -> Unit) {
-        launchCatching {
-            accountService.deleteAccount()
-            restartApp(SPLASH_SCREEN)
-        }
-    }
 }

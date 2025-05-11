@@ -17,13 +17,11 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.moncloaplus.screens.account_center.AccountCenterScreen
 import com.example.moncloaplus.screens.authentication.sign_in.SignInScreen
 import com.example.moncloaplus.screens.authentication.sign_up.SignUpScreen
 import com.example.moncloaplus.screens.MainScreen
 import com.example.moncloaplus.screens.admin.AdminScreen
 import com.example.moncloaplus.screens.maintainer.MaintainerScreen
-import com.example.moncloaplus.screens.splash.SplashScreen
 import com.example.moncloaplus.screens.user_data.UserDataScreen
 import com.example.moncloaplus.ui.theme.PlusTheme
 import kotlinx.coroutines.CoroutineScope
@@ -75,14 +73,6 @@ fun NavGraphBuilder.plusGraph(appState: PlusAppState) {
 
     composable(SIGN_UP_SCREEN) {
         SignUpScreen(openAndPopUp = { route, popUp -> appState.navigateAndPopUp(route, popUp) })
-    }
-
-    composable(SPLASH_SCREEN) {
-        SplashScreen(openAndPopUp = { route, popUp -> appState.navigateAndPopUp(route, popUp) })
-    }
-
-    composable(ACCOUNT_CENTER_SCREEN) {
-        AccountCenterScreen(restartApp = { route -> appState.clearAndNavigate(route) })
     }
 
     composable(USER_DATA_SCREEN) {

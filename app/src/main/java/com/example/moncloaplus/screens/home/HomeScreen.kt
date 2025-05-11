@@ -26,7 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.moncloaplus.model.EventType
 import com.example.moncloaplus.model.EventViewModel
 import com.example.moncloaplus.model.UserViewModel
-import com.example.moncloaplus.screens.account_center.AccountCenterViewModel
+import com.example.moncloaplus.model.AccountCenterViewModel
 import com.example.moncloaplus.screens.create_event.eventTypeNameMap
 import com.example.moncloaplus.screens.reservation.LoadingIndicator
 

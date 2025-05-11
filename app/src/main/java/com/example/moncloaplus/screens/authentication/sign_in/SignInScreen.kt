@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.moncloaplus.R
 import com.example.moncloaplus.SIGN_UP_SCREEN
+import com.example.moncloaplus.model.SignInViewModel
 import com.example.moncloaplus.screens.authentication.AuthenticationButton
 import com.example.moncloaplus.screens.authentication.launchCredManBottomSheet
 

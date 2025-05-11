@@ -1,9 +1,8 @@
-package com.example.moncloaplus.screens.authentication.sign_in
+package com.example.moncloaplus.model
 
 import androidx.credentials.Credential
 import androidx.credentials.CustomCredential
 import com.example.moncloaplus.ADMIN_SCREEN
-import com.example.moncloaplus.HOME_SCREEN
 import com.example.moncloaplus.MAINTAINER_SCREEN
 import com.example.moncloaplus.MAIN_SCREEN
 import com.example.moncloaplus.SIGN_IN_SCREEN

@@ -42,7 +42,7 @@ import com.example.moncloaplus.HOME_SCREEN
 import com.example.moncloaplus.R
 import com.example.moncloaplus.model.User
 import com.example.moncloaplus.screens.AppBar
-import com.example.moncloaplus.screens.account_center.AccountCenterViewModel
+import com.example.moncloaplus.model.AccountCenterViewModel
 import com.example.moncloaplus.screens.fixes.FixesScreen
 import com.example.moncloaplus.screens.home.FIXES_SCREEN
 import com.example.moncloaplus.screens.home.HomeScreen

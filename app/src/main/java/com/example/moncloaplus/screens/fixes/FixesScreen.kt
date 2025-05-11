@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.moncloaplus.model.FixState
 import com.example.moncloaplus.model.FixViewModel
-import com.example.moncloaplus.screens.account_center.AccountCenterViewModel
+import com.example.moncloaplus.model.AccountCenterViewModel
 import com.example.moncloaplus.screens.reservation.LoadingIndicator
 
 @Composable

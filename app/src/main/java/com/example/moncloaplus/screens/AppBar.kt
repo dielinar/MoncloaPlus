@@ -2,7 +2,6 @@ package com.example.moncloaplus.screens
 
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DrawerState
@@ -34,7 +33,7 @@ fun AppBar(drawerState: DrawerState, scope: CoroutineScope, navController: NavHo
         ),
         title = {
             Text(
-                "MoncloaPlus",
+                "Moncloa+",
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
@@ -61,15 +60,6 @@ fun AppBar(drawerState: DrawerState, scope: CoroutineScope, navController: NavHo
                 Icon(
                     imageVector = Icons.Filled.Menu,
                     contentDescription = "Menu",
-                    tint = MaterialTheme.colorScheme.onPrimary
-                )
-            }
-        },
-        actions = {
-            IconButton(onClick = { /* do something */ }) {
-                Icon(
-                    imageVector = Icons.Filled.AccountCircle,
-                    contentDescription = "Account center",
                     tint = MaterialTheme.colorScheme.onPrimary
                 )
             }

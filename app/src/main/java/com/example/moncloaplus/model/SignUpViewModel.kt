@@ -1,4 +1,4 @@
-package com.example.moncloaplus.screens.authentication.sign_up
+package com.example.moncloaplus.model
 
 import com.example.moncloaplus.SIGN_UP_SCREEN
 import com.example.moncloaplus.SnackbarManager
