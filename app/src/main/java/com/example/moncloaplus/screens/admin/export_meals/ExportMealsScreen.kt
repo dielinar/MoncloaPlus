@@ -33,7 +33,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.moncloaplus.R
-import com.example.moncloaplus.model.WeekMealsViewModel
+import com.example.moncloaplus.screens.meals.WeekMealsViewModel
 import com.example.moncloaplus.screens.meals.WEEK_DAYS
 import com.example.moncloaplus.screens.meals.getExactDate
 

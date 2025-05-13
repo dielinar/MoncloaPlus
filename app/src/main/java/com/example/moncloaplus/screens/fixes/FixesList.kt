@@ -34,8 +34,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import com.example.moncloaplus.model.Fix
-import com.example.moncloaplus.model.FixViewModel
+import com.example.moncloaplus.data.model.Fix
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -48,8 +47,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import com.example.moncloaplus.R
-import com.example.moncloaplus.model.FixState
-import com.example.moncloaplus.model.User
+import com.example.moncloaplus.data.model.FixState
+import com.example.moncloaplus.data.model.User
 import java.text.SimpleDateFormat
 
 @Composable

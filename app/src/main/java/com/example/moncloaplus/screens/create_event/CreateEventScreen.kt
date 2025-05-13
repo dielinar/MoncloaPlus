@@ -50,9 +50,8 @@ import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.example.moncloaplus.HOME_SCREEN
 import com.example.moncloaplus.R
-import com.example.moncloaplus.model.ActividadesColegiales
-import com.example.moncloaplus.model.EventType
-import com.example.moncloaplus.model.EventViewModel
+import com.example.moncloaplus.data.model.ActividadesColegiales
+import com.example.moncloaplus.data.model.EventType
 import com.example.moncloaplus.screens.reservation.LoadingIndicator
 
 @Composable

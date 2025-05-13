@@ -61,10 +61,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import com.example.moncloaplus.R
-import com.example.moncloaplus.model.Event
-import com.example.moncloaplus.model.EventViewModel
-import com.example.moncloaplus.model.User
-import com.example.moncloaplus.model.UserViewModel
+import com.example.moncloaplus.data.model.Event
+import com.example.moncloaplus.screens.create_event.EventViewModel
+import com.example.moncloaplus.data.model.User
+import com.example.moncloaplus.screens.user_data.UserViewModel
 import com.example.moncloaplus.screens.reservation.convertMillisToDate
 import com.example.moncloaplus.screens.reservation.formatHourMinute
 import kotlinx.coroutines.delay

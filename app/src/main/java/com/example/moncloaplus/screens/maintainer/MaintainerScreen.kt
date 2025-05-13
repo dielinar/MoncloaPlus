@@ -40,9 +40,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.moncloaplus.HOME_SCREEN
 import com.example.moncloaplus.R
-import com.example.moncloaplus.model.User
+import com.example.moncloaplus.data.model.User
 import com.example.moncloaplus.screens.AppBar
-import com.example.moncloaplus.model.AccountCenterViewModel
+import com.example.moncloaplus.screens.authentication.AccountCenterViewModel
 import com.example.moncloaplus.screens.fixes.FixesScreen
 import com.example.moncloaplus.screens.home.FIXES_SCREEN
 import com.example.moncloaplus.screens.home.HomeScreen

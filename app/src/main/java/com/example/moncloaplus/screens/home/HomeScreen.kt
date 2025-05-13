@@ -23,10 +23,10 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.moncloaplus.model.EventType
-import com.example.moncloaplus.model.EventViewModel
-import com.example.moncloaplus.model.UserViewModel
-import com.example.moncloaplus.model.AccountCenterViewModel
+import com.example.moncloaplus.data.model.EventType
+import com.example.moncloaplus.screens.create_event.EventViewModel
+import com.example.moncloaplus.screens.user_data.UserViewModel
+import com.example.moncloaplus.screens.authentication.AccountCenterViewModel
 import com.example.moncloaplus.screens.create_event.eventTypeNameMap
 import com.example.moncloaplus.screens.reservation.LoadingIndicator
 

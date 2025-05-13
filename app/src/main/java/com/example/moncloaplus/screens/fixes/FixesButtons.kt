@@ -60,9 +60,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import coil.compose.rememberAsyncImagePainter
 import com.example.moncloaplus.R
-import com.example.moncloaplus.model.FixState
-import com.example.moncloaplus.model.FixViewModel
-import com.example.moncloaplus.model.User
+import com.example.moncloaplus.data.model.FixState
+import com.example.moncloaplus.data.model.User
 
 @Composable
 fun FixDialog(

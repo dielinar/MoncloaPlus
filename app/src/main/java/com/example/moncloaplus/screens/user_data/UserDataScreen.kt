@@ -37,7 +37,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.moncloaplus.R
 import com.example.moncloaplus.SnackbarManager
-import com.example.moncloaplus.model.UserViewModel
 import kotlinx.coroutines.launch
 
 @Composable

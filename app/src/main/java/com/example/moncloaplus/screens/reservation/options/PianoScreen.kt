@@ -24,8 +24,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.moncloaplus.screens.reservation.NewReservationButton
-import com.example.moncloaplus.model.ReservationViewModel
-import com.example.moncloaplus.model.AccountCenterViewModel
+import com.example.moncloaplus.screens.reservation.ReservationViewModel
+import com.example.moncloaplus.screens.authentication.AccountCenterViewModel
 import com.example.moncloaplus.screens.reservation.DatePickerFieldToModal
 import com.example.moncloaplus.screens.reservation.LoadingIndicator
 import com.example.moncloaplus.screens.reservation.MyReservationsButton

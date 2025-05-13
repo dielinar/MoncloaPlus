@@ -34,8 +34,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.moncloaplus.R
-import com.example.moncloaplus.model.User
-import com.example.moncloaplus.model.UserViewModel
+import com.example.moncloaplus.data.model.User
+import com.example.moncloaplus.screens.user_data.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

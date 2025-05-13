@@ -52,9 +52,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.moncloaplus.R
-import com.example.moncloaplus.model.Reservation
-import com.example.moncloaplus.model.ReservationViewModel
-import com.example.moncloaplus.model.User
+import com.example.moncloaplus.data.model.Reservation
+import com.example.moncloaplus.screens.reservation.ReservationViewModel
+import com.example.moncloaplus.data.model.User
 import com.example.moncloaplus.screens.reservation.EditReservationDialog
 import com.example.moncloaplus.screens.reservation.RESERVATION_ICONS
 import com.example.moncloaplus.screens.reservation.ReservationColors
@@ -68,8 +68,8 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import com.example.moncloaplus.model.MAX_GYM_PARTICIPANTS
-import com.example.moncloaplus.model.ReservType
+import com.example.moncloaplus.data.model.MAX_GYM_PARTICIPANTS
+import com.example.moncloaplus.data.model.ReservType
 
 @Composable
 fun ReservationList(

@@ -19,8 +19,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
 import com.example.moncloaplus.HOME_SCREEN
 import com.example.moncloaplus.R
-import com.example.moncloaplus.model.User
-import com.example.moncloaplus.model.AccountCenterViewModel
+import com.example.moncloaplus.data.model.User
+import com.example.moncloaplus.screens.authentication.AccountCenterViewModel
 import com.example.moncloaplus.screens.admin.export_meals.ExportMealsScreen
 import com.example.moncloaplus.screens.create_event.CreateEventScreen
 import com.example.moncloaplus.screens.fixes.FixesScreen

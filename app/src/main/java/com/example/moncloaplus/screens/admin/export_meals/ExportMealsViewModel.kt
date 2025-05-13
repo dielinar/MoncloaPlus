@@ -1,7 +1,7 @@
 package com.example.moncloaplus.screens.admin.export_meals
 
 import com.example.moncloaplus.SnackbarManager
-import com.example.moncloaplus.network.RetrofitInstance
+import com.example.moncloaplus.data.remote.api.RetrofitInstance
 import com.example.moncloaplus.screens.PlusViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

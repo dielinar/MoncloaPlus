@@ -43,7 +43,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.moncloaplus.HOME_SCREEN
 import com.example.moncloaplus.R
 import com.example.moncloaplus.screens.AppBar
-import com.example.moncloaplus.model.AccountCenterViewModel
+import com.example.moncloaplus.screens.authentication.AccountCenterViewModel
 import com.example.moncloaplus.screens.admin.export_meals.ExportMealsScreen
 import com.example.moncloaplus.screens.home.EXPORT_MEALS_SCREEN
 import com.example.moncloaplus.screens.home.HomeScreen

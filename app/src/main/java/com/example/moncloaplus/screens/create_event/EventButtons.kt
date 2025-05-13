@@ -55,9 +55,9 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.moncloaplus.R
-import com.example.moncloaplus.model.ActividadesColegiales
-import com.example.moncloaplus.model.ClubesProfesionales
-import com.example.moncloaplus.model.EventType
+import com.example.moncloaplus.data.model.ActividadesColegiales
+import com.example.moncloaplus.data.model.ClubesProfesionales
+import com.example.moncloaplus.data.model.EventType
 import com.example.moncloaplus.screens.reservation.AdvancedTimePickerDialog
 import com.example.moncloaplus.screens.reservation.DatePickerModal
 import com.example.moncloaplus.screens.reservation.formatHourMinute

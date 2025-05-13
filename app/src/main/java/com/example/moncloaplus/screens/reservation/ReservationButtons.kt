@@ -67,8 +67,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.moncloaplus.R
-import com.example.moncloaplus.model.ReservType
-import com.example.moncloaplus.model.ReservationViewModel
+import com.example.moncloaplus.data.model.ReservType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

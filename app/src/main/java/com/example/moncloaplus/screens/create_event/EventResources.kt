@@ -1,8 +1,8 @@
 package com.example.moncloaplus.screens.create_event
 
-import com.example.moncloaplus.model.ActividadesColegiales
-import com.example.moncloaplus.model.ClubesProfesionales
-import com.example.moncloaplus.model.EventType
+import com.example.moncloaplus.data.model.ActividadesColegiales
+import com.example.moncloaplus.data.model.ClubesProfesionales
+import com.example.moncloaplus.data.model.EventType
 
 val eventTypeNameMap = mapOf(
     EventType.ACTIVIDAD_COLEGIAL to "Actividades colegiales",
