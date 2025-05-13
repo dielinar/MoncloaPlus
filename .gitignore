@@ -12,7 +12,8 @@
 .externalNativeBuild
 .cxx
 local.properties
-# Claves y configuraciones sensibles
+credentials.txt
 app/google-services.json
 secrets.properties
+app/secrets.properties
 .env
